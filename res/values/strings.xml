@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Library</string>
+    <string name="app_label">Library</string>
+    <string name="menu_set_library_path">Set bibtex file path</string>
+    <string name="menu_set_path_conversion">Setup path conversion</string>
+    <string name="menu_search">Search</string>
+    <string name="search_hint">Search the bibtex library</string>
+    <string name="menu_set_path_conversion_help">When openin local files associated with bibtex entries, such as pdf or djvu files, the path specified in the \'file\' field of the BibTeX entries is modified as follows: The target string is replaced by the replacement string and the result is prepended with the prefix strig.</string>
+    <string name="save">Save</string>
+    <string name="open">Open</string>
+    <string name="cancel">Cancel</string>
+    <string name="target">Target</string>
+    <string name="replacement">Replacement</string>
+    <string name="prefix">Prefix</string>
+    <string name="url">URL</string>
+    <string name="doi">DOI</string>
+    <string name="share">Share...</string>
+    <string name="no_application_to_view_files_of_type">No application available to view files of type</string>
+    <string name="couldnt_find_file">Couldn\'t find file</string>
+    <string name="path_conversion_hint">Maybe the path conversion was not set up correctly?</string>
+    <string name="error_opening_webbrowser">Error opening webbrowser.</string>
+    <string name="error_starting_share_intent">Error starting share intent.</string>
+    <string name="please_enter_path_of_bibtex_library">Please enter the path of the bibtex library file.</string>
+    <string name="adapter_not_initialized">Adapter not initialized.</string>
+    <string name="unable_to_find_file">Unable to find file</string>
+    <string name="io_exception_while_reading">IO Exception while reading from</string>
+    <string name="io_exception_while_closing">IO Exception while closing stream to</string>
+</resources>
