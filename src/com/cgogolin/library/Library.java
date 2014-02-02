@@ -1,7 +1,11 @@
+//Can be built and tested using:
+// 
+// ant debug && ~/src/android/android-sdk-linux/platform-tools/adb uninstall com.cgogolin.library &&  ~/src/android/android-sdk-linux/platform-tools/adb install bin/Library-debug.apk
+//
+//
 package com.cgogolin.library;
 
 import java.io.File;
-import java.lang.reflect.Method; //Used below to fix an issue with highliting in webview
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +23,6 @@ import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.SearchManager;
-
 
 import android.view.View;
 import android.view.Window;
@@ -46,10 +49,6 @@ import android.widget.PopupMenu;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.SearchView;
-
-// import android.webkit.WebView;
-// import android.webkit.WebViewClient;
-// import android.webkit.WebChromeClient;
 import android.webkit.MimeTypeMap;
 
 import android.net.Uri;
@@ -66,13 +65,13 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     private String pathReplacementString = "/mnt/sdcard";
     private String pathPrefixString = "";
     
-//    private EditText editText;
     private String oldQueryText = "";
     private ListView bibtexListView = null;
     private BibtexAdapter bibtexAdapter = null;
     private ProgressBar progressBar  = null;
     private SearchView searchView = null;
     private boolean applyFilterTaskRunning = false;
+    private String scheduledFilteringString = null;
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) //Inflates the options menu
@@ -82,7 +81,6 @@ public class Library extends Activity implements OnItemClickListener, SearchView
 
             // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-//        SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
         searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setIconified(false);
@@ -148,7 +146,7 @@ public class Library extends Activity implements OnItemClickListener, SearchView
             //Create the PopupMenu
         PopupMenu popupMenu = new PopupMenu(context, view);
         Menu menu = popupMenu.getMenu();
-        popupMenu.getMenuInflater().inflate(R.menu.bibtex_context_menu, popupMenu.getMenu()); //API level 11 compati equivalent to popupMenu.inflate(R.menu.bibtex_context_menu);
+        popupMenu.getMenuInflater().inflate(R.menu.bibtex_context_menu, popupMenu.getMenu());
         
             //Read from the Files list from the BibtexEntry
         List<String> associatedFilesList = bibtexAdapter.getFiles(position);
@@ -161,14 +159,9 @@ public class Library extends Activity implements OnItemClickListener, SearchView
                 if ( url == null || url.equals("") ) continue;
                 
                     //Add an item to the menu and
-
-                // Uri testUri = Uri.parse(url);
-                // if(!(new File(testUri.getPath())).isFile()) Toast.makeText(getApplicationContext(),"could not find file: "+url,Toast.LENGTH_SHORT).show();                    
                 menu.add(getString(R.string.open)+": "+url).setOnMenuItemClickListener( new OnMenuItemClickListener() {
                         public boolean onMenuItemClick(MenuItem item)
                             {
-//                                if( (new File(url)).exists())
-//                                if( (new File(url)).isFile())
                                 Uri uri = Uri.parse(url);
                                 if(uri != null && (new File(uri.getPath())).isFile()) 
                                 {
@@ -294,7 +287,9 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     @Override
     public void onBackPressed() //Handles clicks on the back button 
     {
-        if (searchView.getQuery().toString().equals("")) finish();
+        if (searchView.getQuery().toString().equals(""))
+//            finish();
+            super.onBackPressed();
         resetFilter();
     }
 
@@ -302,28 +297,25 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     @Override
     public void onNewIntent(Intent intent) { //Is called when a search is performed
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {   
-            if (bibtexAdapter != null)
+            if (bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
             {
-                if(bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
-                {
-                        //Apply the filter now
-                    applyFilter(intent.getStringExtra(SearchManager.QUERY));
-                        //Focus the listView and close the keyboard
-                    bibtexListView.requestFocus();
-                    hideKeyboard();
-                }
-                else
-                {
-                        //Set the initial filter so that filtering is done in the constructor of the BibtexAdapter after loading the entries 
-                    bibtexAdapter.setInitialFilter(intent.getStringExtra(SearchManager.QUERY));
-                }
+                    //Apply the filter now
+                applyFilter(intent.getStringExtra(SearchManager.QUERY));
             }
+            else
+            {
+                    //Schedule a filtering that will be performed in the PrepareBibtexAdapterTask
+                scheduledFilteringString = intent.getStringExtra(SearchManager.QUERY);
+            }
+                //Focus the listView and close the keyboard
+            bibtexListView.requestFocus();
+            hideKeyboard();
         }   
     }
 
     
     @Override
-    public void onCreate(Bundle savedInstanceState) //Main
+    public void onCreate(Bundle savedInstanceState)
     {
         context = Library.this;
             
@@ -341,14 +333,14 @@ public class Library extends Activity implements OnItemClickListener, SearchView
 
     
     // @Override
-    // protected void onResume() //When we resume
+    // protected void onResume()
     // {   
     //     super.onResume();
     // }
     
         
     @Override
-    protected void onStop() //Before we stop
+    protected void onStop()
     {
         super.onStop();
         
@@ -370,7 +362,7 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     }
     
     
-    public void setLibraryPath() //Set the bibtex library path from user input
+    public void setLibraryPath() //Open a dialoge to set the bibtex library path from user input
     {
         final LinearLayout editTextLayout = new LinearLayout(context);
         editTextLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
@@ -405,7 +397,7 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     }
 
     
-    public void setTargetAndReplacementStrings() //Set the target and repacement strings from user input
+    public void setTargetAndReplacementStrings() //Open a dialoge to set the target and repacement strings from user input
     {
         final LinearLayout editTextLayout = new LinearLayout(context);
         editTextLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
@@ -484,7 +476,7 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     }
 
 
-    private void prepareBibtexAdapter() //Prepares the bibtexAdapter
+    private void prepareBibtexAdapter() //Prepares the bibtexAdapter asynchronously 
     {
             //Create the Adapter that will fill the list with content
         new PrepareBibtexAdapterTask().execute(libraryUrlString);
@@ -504,8 +496,11 @@ public class Library extends Activity implements OnItemClickListener, SearchView
             if (bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK)
                 bibtexAdapter = new BibtexAdapter(context, libraryUrlString[0]);
                 //If it is now correctly initialized apply the filter
-            if(bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK && searchView != null)
-                bibtexAdapter.applyFilter(searchView.getQuery().toString());
+            if(scheduledFilteringString != null && bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
+            {
+                bibtexAdapter.applyFilter(scheduledFilteringString);
+                scheduledFilteringString = null;
+            }
             return bibtexAdapter;
         }
         
@@ -554,10 +549,6 @@ public class Library extends Activity implements OnItemClickListener, SearchView
             bibtexAdapter.prepareForFiltering();
             return null;
         }
-
-        // protected void onPostExecute(Void na) {
-        //     Toast.makeText(context, "Caching done", Toast.LENGTH_LONG).show();
-        // }
     }
     
 
@@ -571,7 +562,7 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     }
 
     
-    private class ApplyFilterTask extends AsyncTask<String,Void,String> //Manages asynchronous execution of the filter process and updates the UI before and once finished - somehow AsyncTask<String,Void,Void> with return null; didn't work...
+    private class ApplyFilterTask extends AsyncTask<String,Void,String> //Manages asynchronous execution of the filter process and updates the UI before and once finished - somehow AsyncTask<String,Void,Void> with return null doesn't work, so I went for AsyncTask<String,Void,String>
     {
         protected void onPreExecute()
         {
@@ -605,7 +596,7 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     }
 
 
-    private void hideKeyboard()
+    private void hideKeyboard() 
     {
         InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);

@@ -38,7 +38,6 @@ public class BibtexAdapter extends BaseAdapter {
     private ArrayList<BibtexEntry> BibtexEntryList = new ArrayList<BibtexEntry>();
     private ArrayList<BibtexEntry> FilteredBibtexEntryList = new ArrayList<BibtexEntry>();
     private String filter = null;
-    private String initialFilter = null;
     private int status = BibtexAdapter.STATUS_NOT_INITIALIZED;
     
     public BibtexAdapter(Context context, String libraryUrlString)
@@ -250,9 +249,8 @@ public class BibtexAdapter extends BaseAdapter {
                 BibtexEntryList.add(entry);
             }
             
-                //Copy all entries to the filtered list or filter accoding to the initial filter if this has been set to something !=null in the meantime.
-//            FilteredBibtexEntryList.addAll(BibtexEntryList);
-            applyFilter(initialFilter);
+                //Copy all entries to the filtered list
+            FilteredBibtexEntryList.addAll(BibtexEntryList);
             
                 //Close the file
             bufferedReader.close();
@@ -288,11 +286,6 @@ public class BibtexAdapter extends BaseAdapter {
                 }
             }   
         }            
-    }
-
-    public void setInitialFilter(String filter)
-    {
-        initialFilter = filter;
     }
     
     public void applyFilter(String filter)
