@@ -492,8 +492,8 @@ public class Library extends Activity implements OnItemClickListener, SearchView
         }
         
         protected BibtexAdapter doInBackground(String... libraryUrlString) {
-                //If the BibtexAdapter is already initialized do nothing
-            if (bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK)
+                //If the BibtexAdapter is already initialized and has the right path do nothing
+            if (bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK || !bibtexAdapter.getLibraryUrlString().equals(libraryUrlString[0]))
                 bibtexAdapter = new BibtexAdapter(context, libraryUrlString[0]);
                 //If it is now correctly initialized apply the filter
             if(scheduledFilteringString != null && bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
