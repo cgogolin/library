@@ -154,16 +154,19 @@ public class Library extends Activity implements OnItemClickListener, SearchView
         {
             for (String file : associatedFilesList)
             {
-                    //Modify the base of the url
-                final String url = pathPrefixString + file.replace(pathTargetString,pathReplacementString);
+                    //Modify the url based on the target and replacement strings taking into account that
+                    //some versions of Android suffer from this very stupid bug:
+                    //http://stackoverflow.com/questions/16475317/android-bug-string-substring5-replace-empty-string
+                final String url = pathPrefixString + (pathTargetString.equals("") ? file : file.replace(pathTargetString,pathReplacementString));
+
                 if ( url == null || url.equals("") ) continue;
                 
                     //Add an item to the menu and
                 menu.add(getString(R.string.open)+": "+url).setOnMenuItemClickListener( new OnMenuItemClickListener() {
                         public boolean onMenuItemClick(MenuItem item)
                             {
-                                Uri uri = Uri.parse(url);
-                                if(uri != null && (new File(uri.getPath())).isFile()) 
+                                Uri uri = Uri.parse("file://"+url); // Some PDF viewers seem to need this to open the file properly
+                                if( uri != null && (new File(uri.getPath())).isFile() ) 
                                 {
                                         //Determine mime type
                                     MimeTypeMap map = MimeTypeMap.getSingleton();
@@ -189,8 +192,7 @@ public class Library extends Activity implements OnItemClickListener, SearchView
                                 }
                                 else
                                 {
-                                    Toast.makeText(getApplicationContext(),getString(R.string.couldnt_find_file)+" "+url+".\n\n"+getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();
-                                    
+                                    Toast.makeText(getApplicationContext(),getString(R.string.couldnt_find_file)+" "+url+".\n\n"+getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
                                 }
                                 return true;
                             }
