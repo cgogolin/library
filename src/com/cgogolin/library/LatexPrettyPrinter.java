@@ -1485,9 +1485,9 @@ public class LatexPrettyPrinter {
         map.put("ij","\u0133");
         map.put("fl","\uFB02");
         map.put("fi","\uFB01");
-        map.put("ffl","\uFB04");
-        map.put("ffi","\uFB03");
-        map.put("ff","\uFB00");
+        // map.put("ffl","\uFB04"); //Not supporte by the fonts of some devices
+        // map.put("ffi","\uFB03");
+        // map.put("ff","\uFB00");
         map.put("IJ","\u0132");
         map.put("=:","\u2255");
         map.put("<\\kern-0.58em(","\u2993");
