@@ -67,7 +67,7 @@ public class BibtexEntry {
     {
         String blob = "";
 //            for (String key : entryMap.keySet()) blob = blob+""+key+"="+entryMap.get(key)+" ";
-        for (String key : new String[]{"label","documenttyp","author","editor","eprint","primaryclass","doi","journal","number","pages","title","volume","month","year","archiveprefix","arxivid"} )
+        for (String key : new String[]{"label","documenttyp","author","editor","eprint","primaryclass","doi","journal","number","pages","title","volume","month","year","archiveprefix","arxivid","keywords","mendeley-tags","url"} )
         {
             if (entryMap.containsKey(key))
                 blob = blob+""+key+"="+entryMap.get(key)+" ";
