@@ -481,77 +481,151 @@ public class Library extends Activity implements OnItemClickListener, SearchView
     private void prepareBibtexAdapter() //Prepares the bibtexAdapter asynchronously 
     {
             //Create the Adapter that will fill the list with content
-        new PrepareBibtexAdapterTask().execute(libraryUrlString);
-    }
-
-    
-    private class PrepareBibtexAdapterTask extends AsyncTask<String, Void, BibtexAdapter> { //Manages asynchronous execution of the creation of the BibtexAdapter and updates the UI before and once finished
-
-        protected void onPreExecute()
-        {
-            bibtexListView.setVisibility(View.GONE);
-            progressBar.setVisibility(View.VISIBLE);
-        }
-        
-        protected BibtexAdapter doInBackground(String... libraryUrlString) {
-                //If the BibtexAdapter is already initialized and has the right path do nothing
-            if (bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK || !bibtexAdapter.getLibraryUrlString().equals(libraryUrlString[0]))
-                bibtexAdapter = new BibtexAdapter(context, libraryUrlString[0]);
-                //If it is now correctly initialized apply the filter
-            if(scheduledFilteringString != null && bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
+//        new PrepareBibtexAdapterTask().execute(libraryUrlString);
+        AsyncTask<String, Void, BibtexAdapter> PrepareBibtexAdapterTask = new AsyncTask<String, Void, BibtexAdapter>() { //Manages asynchronous execution of the creation of the BibtexAdapter and updates the UI before and once finished
+            @Override
+            protected void onPreExecute()
             {
-                bibtexAdapter.applyFilter(scheduledFilteringString);
-                scheduledFilteringString = null;
+                bibtexListView.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
             }
-            return bibtexAdapter;
-        }
-        
-        protected void onPostExecute(BibtexAdapter bibtexAdapter) {
-            progressBar.setVisibility(View.GONE);
-            if(bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK)
-            {
-                    //If the Adapter was not initialized correctly complain
-                if(bibtexAdapter == null)
-                    Toast.makeText(context, "BibtexAdapter not initialized", Toast.LENGTH_LONG).show();
+            @Override
+            protected BibtexAdapter doInBackground(String... libraryUrlString) {
+                    //If the BibtexAdapter is already initialized and has the right path do nothing
+                if (bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK || !bibtexAdapter.getLibraryUrlString().equals(libraryUrlString[0]))
+                    bibtexAdapter = new BibtexAdapter(context, libraryUrlString[0]);
+                    //If it is now correctly initialized apply the filter
+                if(scheduledFilteringString != null && bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
+                {
+                    bibtexAdapter.applyFilter(scheduledFilteringString);
+                    scheduledFilteringString = null;
+                }
+                return bibtexAdapter;
+            }
+            @Override
+            protected void onPostExecute(BibtexAdapter bibtexAdapter) {
+                progressBar.setVisibility(View.GONE);
+                if(bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK)
+                {
+                        //If the Adapter was not initialized correctly complain
+                    if(bibtexAdapter == null)
+                        Toast.makeText(context, "BibtexAdapter not initialized", Toast.LENGTH_LONG).show();
+                    else
+                        switch (bibtexAdapter.getStatus())
+                        {
+                            case BibtexAdapter.STATUS_NOT_INITIALIZED:
+                                Toast.makeText(context, getString(R.string.adapter_not_initialized), Toast.LENGTH_LONG).show();
+                                break;
+                            case BibtexAdapter.STATUS_FILE_NOT_FOUND:
+                                Toast.makeText(context, getString(R.string.unable_to_find_file)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
+                                break;
+                            case BibtexAdapter.STATUS_IO_EXCEPTION:
+                                Toast.makeText(context, getString(R.string.io_exception_while_reading)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
+                                break;
+                            case BibtexAdapter.STATUS_IO_EXCEPTION_WHILE_CLOSING:
+                                Toast.makeText(context, getString(R.string.io_exception_while_closing)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
+                                break;
+                        }
+                    setLibraryPath();
+                }
                 else
-                    switch (bibtexAdapter.getStatus())
-                    {
-                        case BibtexAdapter.STATUS_NOT_INITIALIZED:
-                            Toast.makeText(context, getString(R.string.adapter_not_initialized), Toast.LENGTH_LONG).show();
-                            break;
-                        case BibtexAdapter.STATUS_FILE_NOT_FOUND:
-                            Toast.makeText(context, getString(R.string.unable_to_find_file)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
-                            break;
-                        case BibtexAdapter.STATUS_IO_EXCEPTION:
-                            Toast.makeText(context, getString(R.string.io_exception_while_reading)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
-                            break;
-                        case BibtexAdapter.STATUS_IO_EXCEPTION_WHILE_CLOSING:
-                            Toast.makeText(context, getString(R.string.io_exception_while_closing)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
-                            break;
-                    }
-                setLibraryPath();
+                {
+                        //Bind the Adapter to the UI and update
+                    bibtexAdapter.notifyDataSetChanged();
+                    bibtexListView.setAdapter(bibtexAdapter);
+                    bibtexListView.setVisibility(View.VISIBLE);
+                    
+                        //Do some caching to speed up searches
+//                new PrepareBibtexAdapterForFilteringTask().execute();
+                    AsyncTask<BibtexAdapter, Void, Void> PrepareBibtexAdapterForFilteringTask = new AsyncTask<BibtexAdapter, Void, Void>() { //Manages asynchronous execution of the caching that speeds up search operations
+                        @Override
+                        protected Void doInBackground(BibtexAdapter... bibtexAdapter) {
+                            bibtexAdapter[0].prepareForFiltering();
+                            return null;
+                        }
+                    };
+                    PrepareBibtexAdapterForFilteringTask.execute(bibtexAdapter);
+                }
             }
-            else
-            {
-                    //Bind the Adapter to the UI and update
-                bibtexAdapter.notifyDataSetChanged();
-                bibtexListView.setAdapter(bibtexAdapter);
-                bibtexListView.setVisibility(View.VISIBLE);
-
-                    //Do some caching to speed up searches
-                new PrepareBibtexAdapterForFilteringTask().execute();
-            }
-        }
-    }
-
-
-    private class PrepareBibtexAdapterForFilteringTask extends AsyncTask<Void, Void, Void> { //Manages asynchronous execution of the caching that speeds up search operations
+        };
+        PrepareBibtexAdapterTask.execute(libraryUrlString);
+    } 
         
-        protected Void doInBackground(Void... na) {
-            bibtexAdapter.prepareForFiltering();
-            return null;
-        }
-    }
+//     private class PrepareBibtexAdapterTask extends AsyncTask<String, Void, BibtexAdapter> { //Manages asynchronous execution of the creation of the BibtexAdapter and updates the UI before and once finished
+//    @Override
+//         protected void onPreExecute()
+//         {
+//             bibtexListView.setVisibility(View.GONE);
+//             progressBar.setVisibility(View.VISIBLE);
+//         }
+//    @Override      
+//         protected BibtexAdapter doInBackground(String... libraryUrlString) {
+//                 //If the BibtexAdapter is already initialized and has the right path do nothing
+//             if (bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK || !bibtexAdapter.getLibraryUrlString().equals(libraryUrlString[0]))
+//                 bibtexAdapter = new BibtexAdapter(context, libraryUrlString[0]);
+//                 //If it is now correctly initialized apply the filter
+//             if(scheduledFilteringString != null && bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
+//             {
+//                 bibtexAdapter.applyFilter(scheduledFilteringString);
+//                 scheduledFilteringString = null;
+//             }
+//             return bibtexAdapter;
+//         }
+//                                @Override
+//         protected void onPostExecute(BibtexAdapter bibtexAdapter) {
+//             progressBar.setVisibility(View.GONE);
+//             if(bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK)
+//             {
+//                     //If the Adapter was not initialized correctly complain
+//                 if(bibtexAdapter == null)
+//                     Toast.makeText(context, "BibtexAdapter not initialized", Toast.LENGTH_LONG).show();
+//                 else
+//                     switch (bibtexAdapter.getStatus())
+//                     {
+//                         case BibtexAdapter.STATUS_NOT_INITIALIZED:
+//                             Toast.makeText(context, getString(R.string.adapter_not_initialized), Toast.LENGTH_LONG).show();
+//                             break;
+//                         case BibtexAdapter.STATUS_FILE_NOT_FOUND:
+//                             Toast.makeText(context, getString(R.string.unable_to_find_file)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
+//                             break;
+//                         case BibtexAdapter.STATUS_IO_EXCEPTION:
+//                             Toast.makeText(context, getString(R.string.io_exception_while_reading)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
+//                             break;
+//                         case BibtexAdapter.STATUS_IO_EXCEPTION_WHILE_CLOSING:
+//                             Toast.makeText(context, getString(R.string.io_exception_while_closing)+" "+bibtexAdapter.getLibraryUrlString()+".", Toast.LENGTH_LONG).show();
+//                             break;
+//                     }
+//                 setLibraryPath();
+//             }
+//             else
+//             {
+//                     //Bind the Adapter to the UI and update
+//                 bibtexAdapter.notifyDataSetChanged();
+//                 bibtexListView.setAdapter(bibtexAdapter);
+//                 bibtexListView.setVisibility(View.VISIBLE);
+
+//                     //Do some caching to speed up searches
+// //                new PrepareBibtexAdapterForFilteringTask().execute();
+//                 AsyncTask<Void, Void, Void> PrepareBibtexAdapterForFilteringTask = new AsyncTask<Void, Void, Void> { //Manages asynchronous execution of the caching that speeds up search operations
+//                                         @Override
+//                     protected Void doInBackground(Void... na) {
+//                         bibtexAdapter.prepareForFiltering();
+//                         return null;
+//                     }
+//                 }
+//                 PrepareBibtexAdapterForFilteringTask.execute();
+//             }
+//         }
+//     }
+
+
+    // private class PrepareBibtexAdapterForFilteringTask extends AsyncTask<Void, Void, Void> { //Manages asynchronous execution of the caching that speeds up search operations
+//                                @Override
+    //     protected Void doInBackground(Void... na) {
+    //         bibtexAdapter.prepareForFiltering();
+    //         return null;
+    //     }
+    // }
     
 
     private void applyFilter(String searchString) //Applies the search filter
@@ -560,30 +634,52 @@ public class Library extends Activity implements OnItemClickListener, SearchView
         if (applyFilterTaskRunning) return;
         applyFilterTaskRunning = true;
             //Apply the filter
-        new ApplyFilterTask().execute(searchString);
+//        new ApplyFilterTask().execute(searchString);
+        AsyncTask<String,Void,String> applyFilterTask = new AsyncTask<String,Void,String>() {//Manages asynchronous execution of the filter process and updates the UI before and once finished - somehow AsyncTask<String,Void,Void> with return null doesn't work, so I went for AsyncTask<String,Void,String>
+            @Override
+            protected void onPreExecute()
+            {
+                bibtexListView.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
+            }
+            @Override
+            protected String doInBackground(String... searchString) {
+                bibtexAdapter.applyFilter(searchString[0]);
+                return searchString[0];
+            }
+            @Override
+            protected void onPostExecute(String searchString) {
+                bibtexAdapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
+                bibtexListView.setVisibility(View.VISIBLE);
+                applyFilterTaskRunning = false;
+            }        
+        };
+        applyFilterTask.execute(searchString);
     }
-
     
-    private class ApplyFilterTask extends AsyncTask<String,Void,String> //Manages asynchronous execution of the filter process and updates the UI before and once finished - somehow AsyncTask<String,Void,Void> with return null doesn't work, so I went for AsyncTask<String,Void,String>
-    {
-        protected void onPreExecute()
-        {
-            bibtexListView.setVisibility(View.GONE);
-            progressBar.setVisibility(View.VISIBLE);
-        }
-            
-        protected String doInBackground(String... searchString) {
-            bibtexAdapter.applyFilter(searchString[0]);
-            return searchString[0];
-        }
-            
-        protected void onPostExecute(String searchString) {
-            bibtexAdapter.notifyDataSetChanged();
-            progressBar.setVisibility(View.GONE);
-            bibtexListView.setVisibility(View.VISIBLE);
-            applyFilterTaskRunning = false;
-        }        
-    }
+    
+    // private class ApplyFilterTask extends AsyncTask<String,Void,String> //Manages asynchronous execution of the filter process and updates the UI before and once finished - somehow AsyncTask<String,Void,Void> with return null doesn't work, so I went for AsyncTask<String,Void,String>
+    // {
+    //                         @Override
+    //     protected void onPreExecute()
+    //     {
+    //         bibtexListView.setVisibility(View.GONE);
+    //         progressBar.setVisibility(View.VISIBLE);
+    //     }
+//    @Override
+    //     protected String doInBackground(String... searchString) {
+    //         bibtexAdapter.applyFilter(searchString[0]);
+    //         return searchString[0];
+    //     }
+//                          @Override          
+    //     protected void onPostExecute(String searchString) {
+    //         bibtexAdapter.notifyDataSetChanged();
+    //         progressBar.setVisibility(View.GONE);
+    //         bibtexListView.setVisibility(View.VISIBLE);
+    //         applyFilterTaskRunning = false;
+    //     }        
+    // }
 
 
     private boolean resetFilter() //Resets the search filter
