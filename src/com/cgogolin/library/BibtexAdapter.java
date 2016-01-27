@@ -6,23 +6,30 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
-import java.io.FileInputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
 
 import android.content.Context;
+import android.content.Intent;
+import android.content.ActivityNotFoundException;
 
 import android.net.Uri;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import android.view.View.OnClickListener;
 
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.TextView;
-//import android.widget.Toast;
+import android.widget.LinearLayout;
+import android.widget.Toast;
+
+import android.webkit.MimeTypeMap;
 
 public class BibtexAdapter extends BaseAdapter {
 
@@ -32,28 +39,26 @@ public class BibtexAdapter extends BaseAdapter {
     public static final int STATUS_FILE_NOT_FOUND = -1;
     public static final int STATUS_IO_EXCEPTION = -2;
     public static final int STATUS_IO_EXCEPTION_WHILE_CLOSING = -3;
+    public static final int STATUS_INPUTSTREAM_NULL = -4;
     
-    private Context context;
-    private String libraryUrlString;
     private ArrayList<BibtexEntry> BibtexEntryList = new ArrayList<BibtexEntry>();
     private ArrayList<BibtexEntry> FilteredBibtexEntryList = new ArrayList<BibtexEntry>();
     private String filter = null;
     private int status = BibtexAdapter.STATUS_NOT_INITIALIZED;
-    
-    public BibtexAdapter(Context context, String libraryUrlString)
-    {
-        this.context = context;
-        this.libraryUrlString = libraryUrlString;
-        
-            //Open the file
-        FileInputStream inputStream = null;
-        try {
 
-            Uri uri = Uri.parse(libraryUrlString);
-            libraryUrlString = uri.getPath();
-            
-            inputStream = new FileInputStream(libraryUrlString);
-            
+
+        //Modify the url based on the target and replacement strings taking into account that
+    String getModifiedPath(String path) {
+        return path;
+    };
+    
+    public BibtexAdapter(InputStream inputStream)
+    {
+        if(inputStream == null) {    
+            status = STATUS_INPUTSTREAM_NULL;
+            return;
+        }
+        try {
                 //Set up buffered input
             InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
             BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
@@ -139,13 +144,6 @@ public class BibtexAdapter extends BaseAdapter {
                         //Discard the name and the '=' from the buffer
                     buffer = buffer.substring(buffer.indexOf('=')+1).trim();
                     
-                    //     //Continue reading lines until we find the first '}' which could be, but is not necessarially the end of the current entry.
-                    // while (buffer.indexOf('}') == -1)
-                    // {
-                    //     if ( (line = bufferedReader.readLine()) == null ) break SEARCH_FOR_ENTRY;
-                    //     buffer = buffer+line.trim();
-                    // }
-                    
                         //Treat the value of the tag differentyl depending on the delimiter
                     char Delimiter1 = buffer.charAt(0);
                     
@@ -228,8 +226,6 @@ public class BibtexAdapter extends BaseAdapter {
                             cutoff = (buffer.indexOf('}') == -1 || cutoff < buffer.indexOf('}') ) ? cutoff : buffer.indexOf('}');
                             cutoff = (buffer.indexOf('@') == -1 || cutoff < buffer.indexOf('@') ) ? cutoff : buffer.indexOf('@');
                             buffer = buffer.substring(cutoff);
-                            
-                                //Toast.makeText(context, "Non bibtex conform tag value in entry "+label+" intepreted as "+name+"="+value, Toast.LENGTH_SHORT).show();
                             break;
                     }
                     
@@ -259,20 +255,13 @@ public class BibtexAdapter extends BaseAdapter {
                 try {
                     inputStream.close();
                 } catch (java.io.IOException e) {
-                        //Toast.makeText(context, "IO Exception while closing stream to "+libraryUrlString, Toast.LENGTH_LONG).show();
                     status = STATUS_IO_EXCEPTION_WHILE_CLOSING;
                     return;
                 }
             }
             status = STATUS_OK;
         }
-        catch (java.io.FileNotFoundException e) {
-                //Toast.makeText(context, "File "+libraryUrlString+" not foud", Toast.LENGTH_LONG).show();
-            status = STATUS_FILE_NOT_FOUND;
-            return;
-        }
         catch (java.io.IOException e) {
-                //Toast.makeText(context, "IO Exception while reading from "+libraryUrlString, Toast.LENGTH_LONG).show();
             status = STATUS_IO_EXCEPTION;
             return;
         }
@@ -281,7 +270,6 @@ public class BibtexAdapter extends BaseAdapter {
                 try {
                     inputStream.close();
                 } catch (java.io.IOException e) {
-                        //Toast.makeText(context, "IO Exception while closing stream to "+libraryUrlString, Toast.LENGTH_LONG).show();
                     status = STATUS_IO_EXCEPTION_WHILE_CLOSING;
                 }
             }   
@@ -339,137 +327,208 @@ public class BibtexAdapter extends BaseAdapter {
             entry.generateStringBlob();
         }
     }
-                
+
+    private void setTextViewAppearance(TextView textView, String text){
+        if(text.equals(""))
+            textView.setVisibility(View.GONE);
+        else
+        {       
+            textView.setText(text);
+            textView.setVisibility(View.VISIBLE);
+        }
+    }
     
-    public View getView(int position, View convertView, ViewGroup viewGroup)
+    @Override    
+    public View getView(final int position, View convertView, ViewGroup parent)
     {
+        final Context context = parent.getContext();
+        
         BibtexEntry entry = getItem(position);
         if (convertView == null) {
-            LayoutInflater inflater = (LayoutInflater) context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.bibtexentry, null);
         }
         
-        TextView bibtexTitleTextView = (TextView) convertView.findViewById(R.id.bibtex_title);
-        bibtexTitleTextView.setText(entry.getTitle());
-
-        TextView bibtexAuthorsTextView = (TextView) convertView.findViewById(R.id.bibtex_authors);
-//        bibtexAuthorsTextView.setText((entry.getAuthor()+" "+entry.getEditor()).trim());
-        String[] authors = (entry.getAuthor()+" and "+entry.getEditor()).split("and");
-        String authorsString = "";
-        boolean firstAuthor = true;
-        for (String author : authors)
-        {
-            if (author.trim().equals("")) break;
-            if( !firstAuthor )
-                authorsString +=", ";
-            else
-                firstAuthor=false;
-            authorsString += author.trim().replaceAll(" *([^,]*) *,? *(.*) *","$2 $1").trim();
-        }
-        bibtexAuthorsTextView.setText(authorsString.trim());
         
-        TextView bibtexJournalTextView = (TextView) convertView.findViewById(R.id.bibtex_journal);
-        bibtexJournalTextView.setText((
-                                          entry.getJournal()+
-                                          (entry.getVolume().equals("") ? "" : " "+entry.getVolume() )+
-                                          (entry.getNumber().equals("") ? "" : " "+entry.getNumber() )+
-                                          (entry.getPages().equals("") ? "" : " p."+entry.getPages() )+
-                                          (entry.getYear().equals("") ? "" : " ("+entry.getYear()+")" )
-                                       ).trim());
+        setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), entry.getTitle());
+        setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
+        setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
+        setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_doi), entry.getDoiFormated(context));
+        setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_arxiv), entry.getEprintFormated());
+//        setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_file), entry.getFilesFormated(context));
 
-        TextView bibtexDoiTextView = (TextView) convertView.findViewById(R.id.bibtex_doi);
-        bibtexDoiTextView.setText(entry.getDoi());
-
-        TextView bibtexArxivTextView = (TextView) convertView.findViewById(R.id.bibtex_arxiv);
-        bibtexArxivTextView.setText((
-                                        ( entry.getArchivePrefix().equals("") ? "" : entry.getArchivePrefix()+":" )+
-                                        ( entry.getArxivId().equals("") ? entry.getEprint() : entry.getArxivId()) 
-                                     ).trim());
+        convertView.findViewById(R.id.LinearLayout02).setVisibility(View.GONE);
         
-        TextView bibtexFileTextView = (TextView) convertView.findViewById(R.id.bibtex_file);
-        List<String> associatedFilesList = getFiles(entry);
-        String filesString = "";
-        if (associatedFilesList != null)
-        {
-            filesString = "Files: ";
-            for (String file : associatedFilesList)
-            {
-//                if ( file == null ) continue;
-                filesString = filesString+file+" ";
-            }
-        }
-        bibtexFileTextView.setText(filesString.trim());
-            
+        convertView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
+                    extraInfo.removeAllViews();
+
+                    BibtexEntry entry = getItem(position);
+                        //Add views here!!!                    
+
+
+
+                        //Read the Files list from the BibtexEntry
+                    List<String> associatedFilesList = entry.getFiles();
+                    if (associatedFilesList != null)
+                    {
+                        for (String file : associatedFilesList)
+                        {
+                            final String url = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
+                            
+                            if ( url == null || url.equals("") ) continue;
+                            
+                                //Add an item to the menu and
+                            final Button button = new Button(context);
+                            button.setText(context.getString(R.string.file)+": "+url);
+                            button.setOnClickListener(new OnClickListener() {
+                                    @Override
+                                    public void onClick(View v)
+                                        {
+                                            Uri uri = Uri.parse("file://"+url); // Some PDF viewers seem to need this to open the file properly
+                                            if( uri != null && (new File(uri.getPath())).isFile() ) 
+                                            {
+                                                    //Determine mime type
+                                                MimeTypeMap map = MimeTypeMap.getSingleton();
+                                                    //String extension = map.getFileExtensionFromUrl(url);
+                                                String extension ="";
+                                                if (url.lastIndexOf(".") != -1) extension = url.substring((url.lastIndexOf(".") + 1), url.length());
+                                                
+                                                String type = map.getMimeTypeFromExtension(extension);
+                                                
+                                        //Start application to open the file
+                                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                intent.setDataAndType(uri, type);
+//                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                try 
+                                                {
+                                                    context.startActivity(intent);
+                                                }
+                                                catch (ActivityNotFoundException e) 
+                                                {
+                                                    Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+url+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
+                                            }
+                                        }
+                                });
+                            extraInfo.addView(button);
+                        }
+                    }
+
+
+                        //Read from the URLs list from the BibtexEntry
+                    List<String> associatedUrlList = entry.getUrls(context);
+                    if (associatedUrlList != null)
+                    {
+                        for (final String url : associatedUrlList)
+                        {
+                            if ( url == null || url.equals("") ) continue;
+                            final Button button = new Button(context);
+                            button.setText(context.getString(R.string.url)+": "+url);
+                            button.setOnClickListener(new OnClickListener() {
+                                    @Override
+                                    public void onClick(View v)
+                                        {
+                            
+                                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                                            intent.setData(Uri.parse(url));
+//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                            try 
+                                            {
+                                                context.startActivity(intent);
+                                            }
+                                            catch (ActivityNotFoundException e) 
+                                            {
+                                                Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                });
+                            extraInfo.addView(button);
+                        }
+                    }
+    
+
+                        //Read from the DOIs list from the BibtexEntry
+                    List<String> associatedDoiList = entry.getDoiLinks(context);
+                    if (associatedDoiList != null)
+                    {
+                        for (final String doi : associatedDoiList)
+                        {
+                            if ( doi == null || doi.equals("") ) continue;
+                            final Button button = new Button(context);
+                            button.setText(context.getString(R.string.doi)+": "+doi);
+                            button.setOnClickListener(new OnClickListener() {
+                                    @Override
+                                    public void onClick(View v)
+                                        {
+                            
+                                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                                            intent.setData(Uri.parse(doi));
+//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                            try 
+                                            {
+                                                context.startActivity(intent);
+                                            }
+                                            catch (ActivityNotFoundException e) 
+                                            {
+                                                Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                });
+                            extraInfo.addView(button);
+                        }
+                    }
+
+                        //Add a share button
+                    final String entryString = getEntryAsString(position);
+                    final Button button = new Button(context);
+                    button.setText(context.getString(R.string.share));
+                    button.setOnClickListener(new OnClickListener() {
+                            @Override
+                            public void onClick(View v)
+                                {
+                                    Intent shareIntent = new Intent();
+                                    shareIntent.setAction(Intent.ACTION_SEND);
+                                    shareIntent.setType("plain/text");
+                                    shareIntent.setType("*/*");
+                                    shareIntent.putExtra(Intent.EXTRA_TEXT, entryString);
+                                    try 
+                                    {
+                                        context.startActivity(shareIntent);
+                                    }
+                                    catch (ActivityNotFoundException e) 
+                                    {
+                                        Toast.makeText(context, context.getString(R.string.error_starting_share_intent),Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                        });
+                    extraInfo.addView(button);
+                    
+                    extraInfo.setVisibility(View.VISIBLE);
+                }
+            });
         return convertView;
     }
 
+    @Override
     public int getCount() {
         return FilteredBibtexEntryList.size();
     }
 
+    @Override
     public BibtexEntry getItem(int position) {
         return FilteredBibtexEntryList.get(position);
     }
 
+    @Override
     public long getItemId(int position) {
         return position;
-    }
-
-    public List<String> getFiles(int position)
-    {
-        return getFiles(getItem(position));
-    }
-    
-    public List<String> getFiles(BibtexEntry entry) {
-            //We assume the either of the following formats:
-            //{:path1/file1.end1:end1;:path2/file2.end1:end2;...}
-            //{path1/file1.end1:end1;path2/file2.end1:end2;...}
-            //{path1/file1.end1;path2/file2.end1;...}
-            //Furthermore we assume that '\_' is an escape sequence for '_'.
-        if ( entry.getFile().equals("") ) return null;
-        String[] rawFileString = entry.getFile().split(";");
-        for (int i = 0; i < rawFileString.length; i++) { 
-            int start = rawFileString[i].indexOf(':')+1;
-            int end = (rawFileString[i].lastIndexOf(':') != rawFileString[i].indexOf(':')) ? rawFileString[i].lastIndexOf(':') : rawFileString[i].length();
-            rawFileString[i] = rawFileString[i].substring(start,end).replace("\\_","_");
-        }
-        List<String> files = new ArrayList<String>(Arrays.asList(rawFileString));
-        return files;
-    }
-
-    public List<String> getUrls(int position)
-    {
-        return getUrls(getItem(position));
-    }
-    public List<String> getUrls(BibtexEntry entry) {
-        String url = entry.getUrl();
-        String howpublished = entry.getHowpublished();
-        if ( !url.equals("") && !howpublished.equals("") ) url+=howpublished;
-        String eprint = entry.getArxivId().equals("") ? entry.getEprint() : entry.getArxivId();
-        if ( url.equals("") && eprint.equals("") ) return null;
-        List<String> urls = new ArrayList<String>();
-        if ( !url.equals("") ) urls.add(url);
-        if ( !eprint.equals("") )
-        {
-            eprint = "http://arxiv.org/abs/"+eprint;
-            if (!eprint.equals(url) )
-                urls.add(eprint);
-        }
-        return urls;
-    }
-
-    public List<String> getDois(int position)
-    {
-        return getDois(getItem(position));
-    }
-    
-    public List<String> getDois(BibtexEntry entry) {
-        String doi = entry.getDoi();
-        if( doi.equals("") ) return null;
-        List<String> dois = new ArrayList<String>();
-        dois.add("http://dx.doi.org/"+doi);
-        return dois;
     }
     
     public String getEntryAsString(int position)
@@ -483,11 +542,6 @@ public class BibtexAdapter extends BaseAdapter {
     public int getStatus()
     {
         return status;
-    }
-
-    public String getLibraryUrlString()
-    {
-        return libraryUrlString;
     }
 
     private String trimDelimiters(String string)

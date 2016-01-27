@@ -20,8 +20,7 @@
       android:id="@+id/bibtex_authors"
       android:layout_width="fill_parent" 	    
       android:layout_height="wrap_content" 
-      android:textSize="16sp"
-      android:textColor="#505050"
+      android:textSize="18sp"
       >
   </TextView>
   <TextView 
@@ -48,12 +47,30 @@
       android:textColor="#505050"
       >
   </TextView>
-  <TextView
+<!--  <TextView
       android:id="@+id/bibtex_file"
       android:layout_width="fill_parent" 	    
       android:layout_height="wrap_content"
       android:textSize="16sp"
       android:textColor="#505050"
       >
+  </TextView>-->
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:id="@+id/LinearLayout02"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:paddingLeft="0sp"
+		android:paddingRight="0sp"
+		android:orientation="vertical"
+		>
+    <TextView
+       android:id="@+id/foo"
+       android:layout_width="fill_parent" 	    
+       android:layout_height="wrap_content"
+       android:textSize="16sp"
+       android:textColor="#505050"
+       android:text="FOO bar!"
+       >
   </TextView>
+  </LinearLayout> 
 </LinearLayout> 

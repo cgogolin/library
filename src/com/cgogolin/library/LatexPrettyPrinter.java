@@ -434,7 +434,7 @@ public class LatexPrettyPrinter {
         map.put("\\oint ","\u222E");
         map.put("\\oe ","\u0153");
         map.put("\\odot ","\u2299");
-        map.put("\\o ","\u00F8");
+        map.put("\\o","\u00F8");
         map.put("\\nwarrow ","\u2196");
         map.put("\\nvdash ","\u22AC");
         map.put("\\nvDash ","\u22AD");

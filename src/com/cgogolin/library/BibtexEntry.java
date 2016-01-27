@@ -1,119 +1,99 @@
 package com.cgogolin.library;
 
+import android.content.Context;
+
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Arrays;
 
-public class BibtexEntry {
-
-    private static LatexPrettyPrinter latexPrettyPrinter;
-    
-    private HashMap<String,String> entryMap;
-    private HashMap<String,String> latexPrettyPrinterEntryMap;
+public class BibtexEntry extends BaseBibtexEntry {
 
     public BibtexEntry()
     {
         super();
-        entryMap = new HashMap<String,String>();
-        latexPrettyPrinterEntryMap = new HashMap<String,String>();
     }
-    
-    public void put(String name, String value) {
-        entryMap.put(name, value);
-    }
-
-    private String saveGet(String name){
-        return (entryMap.containsKey(name) ? entryMap.get(name) : "");
-    }
-
-    private String saveGetPretty(String name){
-        if (!entryMap.containsKey(name))
-            return "";
-        if (!latexPrettyPrinterEntryMap.containsKey(name))
-            latexPrettyPrinterEntryMap.put(name,latexPrettyPrinter.parse(entryMap.get(name)));
-        return latexPrettyPrinterEntryMap.get(name);
-    }
-    
-    public String getLabel() {
-        return saveGet("label");
-    }
-    public String getDocumentType() {
-        return saveGet("documenttyp");
-    }
-    public String getFile() {
-        return saveGet("file");
-    }
-    public String getUrl() {
-        return saveGet("url");
-    }
-    public String getDoi() {
-        return saveGet("doi");
-    }
-    public String getArchivePrefix() {
-        return saveGet("archiveprefix");
-    }
-    public String getArxivId() {
-        return saveGet("arxivid");
-    }
-    public String getEntryAsString() {
-        String output = "@"+getDocumentType()+"{"+getLabel();
-        for (String key : entryMap.keySet())
-            output += ",\n"+key+" = {"+entryMap.get(key)+"}";
-        output += "\n}";
-        return output;
-    }
-    
-        //Functions above output raw values, functions below use the LaTeX pretty printer
-    
-    public void generateStringBlob()
-    {
-        String blob = "";
-//            for (String key : entryMap.keySet()) blob = blob+""+key+"="+entryMap.get(key)+" ";
-        for (String key : new String[]{"label","documenttyp","author","editor","eprint","primaryclass","doi","journal","number","pages","title","volume","month","year","archiveprefix","arxivid","keywords","mendeley-tags","url"} )
+    public String getFilesFormated(Context context) {
+        List<String> associatedFilesList = getFiles();
+        String filesString = "";
+        if (associatedFilesList != null)
         {
-            if (entryMap.containsKey(key))
-                blob = blob+""+key+"="+entryMap.get(key)+" ";
+            filesString = context.getString(R.string.files)+": ";
+            for (String file : associatedFilesList)
+            {
+                filesString = filesString+file+" ";
+            }
         }
-        blob=blob+" "+latexPrettyPrinter.parse(blob);
-        latexPrettyPrinterEntryMap.put("stringblob",blob);
+        return filesString.trim();
     }
-    
-    public String getStringBlob() {
-        if (!latexPrettyPrinterEntryMap.containsKey("stringblob")) generateStringBlob();
-        return latexPrettyPrinterEntryMap.get("stringblob");
+        public List<String> getUrls(Context context) {
+        String url = getUrl();
+        String howpublished = getHowpublished();
+        if ( !url.equals("") && !howpublished.equals("") ) url+=howpublished;
+        String eprint = getArxivId().equals("") ? getEprint() : getArxivId();
+        if ( url.equals("") && eprint.equals("") ) return null;
+        List<String> urls = new ArrayList<String>();
+        if ( !url.equals("") ) urls.add(url);
+        if ( !eprint.equals("") )
+        {
+            eprint = context.getString(R.string.arxiv_url_prefix)+eprint;
+            if (!eprint.equals(url) )
+                urls.add(eprint);
+        }
+        return urls;
     }
-    public String getAuthor() {
-        return saveGetPretty("author");
+    public List<String> getDoiLinks(Context context) {
+        String doi = getDoi();
+        if( doi.equals("") ) return null;
+        List<String> dois = new ArrayList<String>();
+        dois.add(context.getString(R.string.doi_url_prefix)+doi);
+        return dois;
     }
-    public String getEditor() {
-        return saveGetPretty("editor");
+    public String getDoiFormated(Context context) {
+        return context.getString(R.string.doi)+": "+getDoi();
     }
-    public String getEprint() {
-        return saveGetPretty("eprint");
+        public String getAuthorsFormated(Context context) {
+        String[] authors = getAuthor().split("and");
+        String[] editors = getEditor().split("and");
+        String authorsString = "";
+        boolean firstAuthor = true;
+        for (String author : authors)
+        {
+            if (author.trim().equals("")) break;
+            if( !firstAuthor )
+                authorsString +=", ";
+            else
+                firstAuthor=false;
+            authorsString += author.trim().replaceAll(" *([^,]*) *,? *(.*) *","$2 $1").trim();
+        }
+        boolean firstEditor = true;
+        for (String author : editors)
+        {
+            if (author.trim().equals("")) break;
+            if( !firstEditor )
+                authorsString +=", ";
+            else
+            {
+                authorsString += " "+context.getString(R.string.edited_by)+" ";
+                firstEditor=false;
+            }
+            authorsString += author.trim().replaceAll(" *([^,]*) *,? *(.*) *","$2 $1").trim();
+        }
+        return authorsString.trim();
     }
-    public String getPrimaryclass() {
-        return saveGetPretty("primaryclass");
+    public String getJournalFormated(Context context) {
+        return (getJournal()+
+                (getVolume().equals("") ? "" : " "+context.getString(R.string.vol)+" "+getVolume() )+
+         (getNumber().equals("") ? "" : " "+context.getString(R.string.num)+" "+getNumber() )+
+         (getPages().equals("") ? "" : " "+context.getString(R.string.page)+" "+getPages() )+
+         (getYear().equals("") ? "" : " ("+(getMonth().equals("") ? "" : getMonth()+" ")+getYear()+")" )+"."
+         ).trim();
     }
-    public String getHowpublished() {
-        return saveGetPretty("howpublished");
-    }
-    public String getJournal() {
-        return saveGetPretty("journal");
-    }
-    public String getNumber() {
-        return saveGetPretty("number");
-    }
-    public String getPages() {
-        return saveGetPretty("pages");
-    }
-    public String getTitle() {
-        return saveGetPretty("title");
-    }
-    public String getVolume() {
-        return saveGetPretty("volume");
-    }
-    public String getMonth() {
-        return saveGetPretty("month");
-    }
-    public String getYear() {
-        return saveGetPretty("year");
+    public String getEprintFormated() {
+        // return (
+        //     ( getArchivePrefix().equals("") ? "" : getArchivePrefix()+":" )+
+        //     ( getArxivId().equals("") ? getEprint() : getArxivId()) 
+        //         ).trim();
+        return (getEprint().equals("") ? (getArxivId().equals("") ? "" : getArchivePrefix()+":"+getArxivId()) : getEprint() );
     }
 }

@@ -13,8 +13,9 @@
     <string name="target">Target</string>
     <string name="replacement">Replacement</string>
     <string name="prefix">Prefix</string>
-    <string name="url">URL</string>
-    <string name="doi">DOI</string>
+    <string name="file">file</string>
+    <string name="url">url</string>
+    <string name="doi">doi</string>
     <string name="share">Share...</string>
     <string name="no_application_to_view_files_of_type">No application available to view files of type</string>
     <string name="couldnt_find_file">Couldn\'t find file</string>
@@ -23,7 +24,15 @@
     <string name="error_starting_share_intent">Error starting share intent.</string>
     <string name="please_enter_path_of_bibtex_library">Please enter the path of the bibtex library file.</string>
     <string name="adapter_not_initialized">Adapter not initialized.</string>
+    <string name="adapter_null">Adapter failed to initialize. Maybe the library path/uri is not correct or the SDcard is not yet readable?</string>
     <string name="unable_to_find_file">Unable to find file</string>
     <string name="io_exception_while_reading">IO Exception while reading from</string>
     <string name="io_exception_while_closing">IO Exception while closing stream to</string>
+    <string name="files">files</string>
+    <string name="arxiv_url_prefix">http://arxiv.org/abs/</string>
+    <string name="doi_url_prefix">http://dx.doi.org/</string>
+    <string name="edited_by">ed. by</string>
+    <string name="vol">vol.</string>
+    <string name="num">num.</string>
+    <string name="page">p.</string>
 </resources>
