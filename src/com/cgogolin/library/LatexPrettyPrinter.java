@@ -434,7 +434,7 @@ public class LatexPrettyPrinter {
         map.put("\\oint ","\u222E");
         map.put("\\oe ","\u0153");
         map.put("\\odot ","\u2299");
-        map.put("\\o","\u00F8");
+        map.put("\\o ","\u00F8");
         map.put("\\nwarrow ","\u2196");
         map.put("\\nvdash ","\u22AC");
         map.put("\\nvDash ","\u22AD");
@@ -1519,6 +1519,9 @@ public class LatexPrettyPrinter {
         map.put("\\\"([[a-z][A-Z]])","\\\"{$1}");
         return Collections.unmodifiableMap(map);
     }    
+
+    static String latexCommandRegex = "\\\\([;&%#-]|[^ {};&%#-]\\{?\\\\?\\w*\\}?)";
+    static Pattern pattern = Pattern.compile(latexCommandRegex);
     
     public static String parse(String string)
     {
@@ -1533,8 +1536,6 @@ public class LatexPrettyPrinter {
             }
             
                 //Find all appearing latex commands
-            String latexCommandRegex = "\\\\([;&%#-]|[^ {};&%#-]\\{?\\\\?\\w*\\}?)";
-            Pattern pattern = Pattern.compile(latexCommandRegex);
             Matcher matcher = pattern.matcher(string);
             while(matcher.find()) {
                 foundCommandsList.add(string.substring(matcher.start(),matcher.end()));
