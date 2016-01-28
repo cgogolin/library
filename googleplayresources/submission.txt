@@ -1,0 +1,39 @@
+Library allows you to browse your BibTeX files on your Android device.
+
+Features include:
+
+* Clear presentation of BibTeX entries in a list
+* Search/Filter
+* Open associated local files (including file path conversion)
+* Open weblinks created from BibTeX information
+* Holo interface
+* Minimal permissions
+
+Use Case:
+
+I manage my library of scientific papers on my PC. I use Mendeley, but any other software that exports to BibTeX, such as referencer would also do the job. I keep the BibTeX file containing all the bibliographic information and the file paths of the associated files (mostly pdf and djvu) in a version control repository (I use subversion, but git should work equally well). This can be checked out to my Android Tablet using for example OASVN or your favorite version control client. Library allows me to conveniently browse my scientific papers and open them in a pdf viewer. Changes made to the files, like annotations for example can then be commited to the repository again.
+
+E voilà, you have a fully synchronized and automatically backed up library of all your scientific papers right at your finger tips!
+
+
+New in version 2.5:
+* Added support for unicode super- and subscripts as suggested by Sergiy Bubin
+
+New in version 2.4:
+* Added prefix for path conversion as suggested by Sergiy Bubin
+
+New in version 2.3:
+* Performance and stability improvements
+
+New in version 2.2:
+* Hotfix
+
+New in version 2.1:
+* Hotfix
+* Further performance improvements
+
+New in version 2:
+* Massive performance improvements
+* Loading of the BibTeX file and caching for search/filtering now in background thread
+
+
