@@ -35,4 +35,9 @@
     <string name="vol">vol.</string>
     <string name="num">num.</string>
     <string name="page">p.</string>
+    <string name="menu_sort">Sort</string>
+    <string name="menu_sort_by_none">Sort by order in library</string>
+    <string name="menu_sort_by_date">Sort by date</string>
+    <string name="menu_sort_by_author">Sort by author</string>
+    <string name="menu_sort_by_journal">Sort by journal</string>
 </resources>

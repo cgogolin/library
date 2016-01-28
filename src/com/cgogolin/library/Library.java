@@ -59,7 +59,7 @@ import android.net.Uri;
 
 import android.os.AsyncTask;
 
-public class Library extends Activity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener
+public class Library extends Activity implements SearchView.OnQueryTextListener
 {
     Context context;
     
@@ -68,6 +68,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
     private String pathTargetString = "home/username";
     private String pathReplacementString = "/mnt/sdcard";
     private String pathPrefixString = "";
+    BibtexAdapter.SortMode sortMode = BibtexAdapter.SortMode.None;
     
     private String oldQueryText = "";
     private ListView bibtexListView = null;
@@ -85,12 +86,44 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
 
             // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+        MenuItem searchMenuItem = menu.findItem(R.id.menu_search);
+        searchView = (SearchView) searchMenuItem.getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+//        searchView.setIconifiedByDefault(true);
         searchView.setIconified(false);
-            //Respond to a click on the X 
-        searchView.setOnCloseListener(this); //Implemented in: public void onClose(View view)
+
+        searchView.setOnCloseListener( new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    searchView.setIconified(false);//prevent collapsing
+                    return true;
+                }
+            });
+        
+
         searchView.setOnQueryTextListener(this); //Implemented in: public boolean onQueryTextChange(String query) and public boolean onQueryTextSubmit(String query)
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+        
+
+        MenuItem SelectedSortMenuItem = null;
+        switch(sortMode){
+            case None:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_none);
+                break;
+            case Date:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_date);
+                break;
+            case Author:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_author);
+                break;
+            case Journal:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_journal);
+                break;
+        }
+        if(SelectedSortMenuItem!=null)
+//            SelectedSortMenuItem.setIcon(R.drawable.ic_done_white_24dp);
+            SelectedSortMenuItem.setChecked(true);
+        
         return true;
     }
 
@@ -100,29 +133,35 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
     {
         switch (item.getItemId()) 
         {
-                // case android.R.id.home:
-                //     return true;
             case R.id.menu_set_library_path:
                 setLibraryPath();
                 return true;
             case R.id.menu_set_path_conversion:
                 setTargetAndReplacementStrings();
                 return true;
+            case R.id.menu_sort_by_none:
+                sortMode = BibtexAdapter.SortMode.None;
+                sort(sortMode);
+                break;
+            case R.id.menu_sort_by_date:
+                sortMode = BibtexAdapter.SortMode.Date;
+                sort(sortMode);
+                break;
+            case R.id.menu_sort_by_author:
+                sortMode = BibtexAdapter.SortMode.Author;
+                sort(sortMode);
+                break;
+            case R.id.menu_sort_by_journal:
+                sortMode = BibtexAdapter.SortMode.Journal;
+                sort(sortMode);
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
+        invalidateOptionsMenu();
+        return true;
     }
     
-
-    @Override
-    public boolean onClose()
-    {
-//        oldQueryText = "";
-//        searchView.setQuery("",false);
-//        resetFilter();
-        return false;
-    }    
-
     
     @Override
     public boolean onQueryTextChange(String query) { //This is a hacky way to determine when the user has reset the text field with the X button 
@@ -130,7 +169,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
             resetFilter();
         }
         oldQueryText = query;
-        return false;
+        return true;//prevents from collapsing
     }
 
     
@@ -179,6 +218,11 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
         
         loadGlobalSettings(); //Load seetings (uses default if not set)
 
+        ActionBar actionBar = getActionBar();
+        actionBar.setTitle("");
+        actionBar.setIcon(null);
+        actionBar.setDisplayShowTitleEnabled(false);
+        
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
         
         prepareBibtexListView();
@@ -206,6 +250,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
         globalSettingsEditor.putString("pathTargetString", pathTargetString);
         globalSettingsEditor.putString("pathReplacementString", pathReplacementString);
         globalSettingsEditor.putString("pathPrefixString", pathPrefixString);
+        globalSettingsEditor.putString("sortMode", sortMode.toString());
         globalSettingsEditor.commit();
     }
 
@@ -323,6 +368,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
         pathTargetString = globalSettings.getString("pathTargetString", pathTargetString);
         pathReplacementString = globalSettings.getString("pathReplacementString", pathReplacementString);
         pathPrefixString = globalSettings.getString("pathPrefixString", pathPrefixString);
+        sortMode = BibtexAdapter.SortMode.valueOf(globalSettings.getString("sortMode", "None"));
     }
 
     
@@ -383,6 +429,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
                     bibtexAdapter.applyFilter(scheduledFilteringString);
                     scheduledFilteringString = null;
                 }
+                bibtexAdapter.sort(sortMode);
                 return bibtexAdapter;
             }
             @Override
@@ -464,18 +511,42 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
     }
     
 
-    private boolean resetFilter() //Resets the search filter
+    private void resetFilter() //Resets the search filter
     {
-        if (bibtexAdapter == null) return false;
-        boolean wasReset = bibtexAdapter.resetFilter();
-        if (wasReset) {
-            bibtexAdapter.notifyDataSetChanged();
-            searchView.setQuery("",false);
-        }
-        return wasReset;
+        applyFilter("");
     }
 
 
+    private void sort(BibtexAdapter.SortMode sortMode) 
+    {
+        if(bibtexAdapter==null)
+            return;
+        
+        AsyncTask<BibtexAdapter.SortMode,Void,BibtexAdapter.SortMode> sortTask = new AsyncTask<BibtexAdapter.SortMode,Void,BibtexAdapter.SortMode>() {//Manages asynchronous execution of the sort process and updates the UI before and once finished - somehow AsyncTask<String,Void,Void> with return null doesn't work, so I went for AsyncTask<BibtexAdapter.SortMode,Void,BibtexAdapter.SortMode>
+            @Override
+            protected void onPreExecute()
+            {
+                bibtexListView.setVisibility(View.GONE);
+                progressBar.setVisibility(View.VISIBLE);
+            }
+            @Override
+            protected BibtexAdapter.SortMode doInBackground(BibtexAdapter.SortMode... sortMode) {
+                if(bibtexAdapter != null)
+                    bibtexAdapter.sort(sortMode[0]);
+                return sortMode[0];
+            }
+            @Override
+            protected void onPostExecute(BibtexAdapter.SortMode sortMode) {
+                if(bibtexAdapter != null)
+                    bibtexAdapter.notifyDataSetChanged();
+                progressBar.setVisibility(View.GONE);
+                bibtexListView.setVisibility(View.VISIBLE);
+            }        
+        };
+        sortTask.execute(sortMode);
+    }
+
+    
     private void hideKeyboard() 
     {
         InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(INPUT_METHOD_SERVICE);

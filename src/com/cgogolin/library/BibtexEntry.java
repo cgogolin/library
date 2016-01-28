@@ -52,9 +52,9 @@ public class BibtexEntry extends BaseBibtexEntry {
     public String getDoiFormated(Context context) {
         return context.getString(R.string.doi)+": "+getDoi();
     }
-        public String getAuthorsFormated(Context context) {
-        String[] authors = getAuthor().split("and");
-        String[] editors = getEditor().split("and");
+    public String getAuthorsFormated(Context context) {
+        String[] authors = getAuthor().split(" and ");
+        String[] editors = getEditor().split(" and ");
         String authorsString = "";
         boolean firstAuthor = true;
         for (String author : authors)
@@ -102,5 +102,20 @@ public class BibtexEntry extends BaseBibtexEntry {
                 return getEprint();
         else
             return "";
+    }
+    public String getDateFormated() {
+        String year = getYear();
+        String month = getMonthNumeric();
+        String day = getDay();
+        if(month.equals(""))
+            return year;
+        else
+            if(day.equals(""))
+                return year+"-"+month;
+            else
+                return year+"-"+month+"-"+day;
+    }
+    public String getNumberInFile() {
+        return saveGet("numberInFile");
     }
 }

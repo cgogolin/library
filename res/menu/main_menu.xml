@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
   <item android:id="@+id/menu_search"
-          android:title="@string/menu_search"
-          android:showAsAction="ifRoom"
-          android:actionViewClass="android.widget.SearchView"
-	  android:layout_width="match_parent"
-	  android:inputType="textFilter"
-	  />
-<!--           android:icon="@drawable/ic_menu_search" -->
-<!--  <item android:id="@+id/menu_search_button"
-	android:icon="@drawable/ic_menu_search"
-	android:title="@string/menu_search" 
-	android:showAsAction="ifRoom"
-	/>-->
-<!--<item android:icon="@drawable/ic_action_settings"
-      android:title="@string/menu_settings" 
-      android:showAsAction="always"
-      >-->
-<!--  <menu xmlns:android="http://schemas.android.com/apk/res/android">-->
-    <item android:id="@+id/menu_set_library_path"
+        android:title="@string/menu_search"
+        android:showAsAction="ifRoom"
+        android:actionViewClass="android.widget.SearchView"
+	android:icon="@drawable/ic_search_white_24dp"
+	/>
+    <item android:id="@+id/menu_sort"
+	  android:title="@string/menu_sort" 
+	  android:showAsAction="never"
+	  android:icon="@drawable/ic_sort_white_24dp"
+	  >
+      <menu>
+	<item android:id="@+id/menu_sort_by_none"
+	      android:title="@string/menu_sort_by_none"
+	      android:checkable="true"
+	      />
+	<item android:id="@+id/menu_sort_by_date"
+	      android:title="@string/menu_sort_by_date"
+	      android:checkable="true"
+	      />
+	<item android:id="@+id/menu_sort_by_author"
+	      android:title="@string/menu_sort_by_author"
+	      android:checkable="true"
+	      />
+	<item android:id="@+id/menu_sort_by_journal"
+	      android:title="@string/menu_sort_by_journal"
+	      android:checkable="true"
+	      />
+      </menu>
+    </item>
+        <item android:id="@+id/menu_set_library_path"
 	  android:title="@string/menu_set_library_path" 
 	  android:showAsAction="never"
 	  />
@@ -26,6 +38,4 @@
 	  android:title="@string/menu_set_path_conversion" 
 	  android:showAsAction="never"
 	  />
-<!--  </menu>-->
-<!--</item>-->
 </menu>

@@ -5,6 +5,9 @@ import java.lang.Character;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+
 
 import java.io.File;
 import java.io.InputStream;
@@ -16,6 +19,8 @@ import android.content.Intent;
 import android.content.ActivityNotFoundException;
 
 import android.net.Uri;
+
+import android .util.Log;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +37,8 @@ import android.widget.Toast;
 import android.webkit.MimeTypeMap;
 
 public class BibtexAdapter extends BaseAdapter {
-
+    
+    public static final int STATUS_SORTING = 3;
     public static final int STATUS_FILTERING = 2;
     public static final int STATUS_NOT_INITIALIZED = 1;
     public static final int STATUS_OK = 0;
@@ -40,13 +46,16 @@ public class BibtexAdapter extends BaseAdapter {
     public static final int STATUS_IO_EXCEPTION = -2;
     public static final int STATUS_IO_EXCEPTION_WHILE_CLOSING = -3;
     public static final int STATUS_INPUTSTREAM_NULL = -4;
+
+    public enum SortMode {None, Date, Author, Journal}
     
-    private ArrayList<BibtexEntry> BibtexEntryList;
-    private ArrayList<BibtexEntry> FilteredBibtexEntryList;
+    private ArrayList<BibtexEntry> bibtexEntryList;
+    private ArrayList<BibtexEntry> filteredBibtexEntryList;
     private String filter = null;
     private int status = BibtexAdapter.STATUS_NOT_INITIALIZED;
 
-
+    SortMode sortMode = SortMode.None;
+    
     public BibtexAdapter(InputStream inputStream)
     {
         if(inputStream == null) {    
@@ -54,7 +63,7 @@ public class BibtexAdapter extends BaseAdapter {
             return;
         }
         try{
-            BibtexEntryList = BibtexParser.parse(inputStream);
+            bibtexEntryList = BibtexParser.parse(inputStream);
         }
         catch (java.io.IOException e) {
             status = STATUS_IO_EXCEPTION;
@@ -70,12 +79,12 @@ public class BibtexAdapter extends BaseAdapter {
             }
         }
             //Copy all entries to the filtered list
-        FilteredBibtexEntryList = new ArrayList<BibtexEntry>();
-        FilteredBibtexEntryList.addAll(BibtexEntryList);
+        filteredBibtexEntryList = new ArrayList<BibtexEntry>();
+        filteredBibtexEntryList.addAll(bibtexEntryList);
         
         status = STATUS_OK;
     }
-    
+
     public void applyFilter(String filter)
     {
             //If not successfully initialized or filter invalid or unchanged do nothing
@@ -83,16 +92,16 @@ public class BibtexAdapter extends BaseAdapter {
             //Else start filtering
         status = STATUS_FILTERING;
             //Clear so that we can populate from scratch
-        FilteredBibtexEntryList.clear();
+        filteredBibtexEntryList.clear();
             //If filter is empty we return everything
         if (filter.trim().equals(""))
         {
-            FilteredBibtexEntryList.addAll(BibtexEntryList);
+            filteredBibtexEntryList.addAll(bibtexEntryList);
         }
             //Else we filter with "and" ignoring case
         else
         {
-            for ( BibtexEntry entry : BibtexEntryList ) {
+            for ( BibtexEntry entry : bibtexEntryList ) {
                 String blob = entry.getStringBlob().toLowerCase();
                 String[] substrings = filter.toLowerCase().split(" ");
                 boolean matches = true;
@@ -104,11 +113,61 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 }
                 if (matches)
-                    FilteredBibtexEntryList.add(entry);
+                    filteredBibtexEntryList.add(entry);
             }
         }
         this.filter = filter;
         status = STATUS_OK;
+        sort();
+    }
+
+    public void sort(SortMode sortMode) {
+        if(this.sortMode != sortMode)
+        {
+            int oldStatus = status;
+            this.sortMode = sortMode;
+            sort();
+            status = oldStatus;
+        }
+    }
+    
+    private void sort() {
+        if(filteredBibtexEntryList==null || status != STATUS_OK) return;
+        status = STATUS_SORTING;
+        switch(sortMode) {
+            case None:
+                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                        @Override
+                        public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                            return  entry1.getNumberInFile().compareTo(entry2.getNumberInFile());
+                        }
+                    });
+                return;
+            case Date:
+                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                        @Override
+                        public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                            return  (entry2.getDateFormated()+entry2.getNumberInFile()).compareTo(entry1.getDateFormated()+entry1.getNumberInFile());
+                        }
+                    });
+                return;                
+            case Author:
+                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                        @Override
+                        public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                            return  (entry1.getAuthor()+entry1.getNumberInFile()).compareTo(entry2.getAuthor()+entry2.getNumberInFile());
+                        }
+                    });
+                return;
+            case Journal:
+                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                        @Override
+                        public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                            return  (entry1.getJournal()+entry1.getNumberInFile()).compareTo(entry2.getJournal()+entry2.getNumberInFile());
+                        }
+                    });
+                return;
+        }
     }
 
     
@@ -124,7 +183,7 @@ public class BibtexAdapter extends BaseAdapter {
 
     public void prepareForFiltering() //Calls generateStringBlob() for each entry to speed up subsequent searches
     {
-        for ( BibtexEntry entry : BibtexEntryList ) {
+        for ( BibtexEntry entry : bibtexEntryList ) {
             entry.generateStringBlob();
         }
     }
@@ -326,12 +385,12 @@ public class BibtexAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return FilteredBibtexEntryList.size();
+        return filteredBibtexEntryList.size();
     }
 
     @Override
     public BibtexEntry getItem(int position) {
-        return FilteredBibtexEntryList.get(position);
+        return filteredBibtexEntryList.get(position);
     }
 
     @Override
