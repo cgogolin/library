@@ -143,10 +143,10 @@ public class BibtexAdapter extends BaseAdapter {
     public View getView(final int position, View convertView, ViewGroup parent)
     {
         final Context context = parent.getContext();
-        
+        final LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                    
         BibtexEntry entry = getItem(position);
         if (convertView == null) {
-            LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.bibtexentry, null);
         }
         
@@ -164,157 +164,163 @@ public class BibtexAdapter extends BaseAdapter {
                 @Override
                 public void onClick(View v) {
                     LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
-                    extraInfo.removeAllViews();
-
-                    BibtexEntry entry = getItem(position);
-                        //Add views here!!!                    
-
-
-
-                        //Read the Files list from the BibtexEntry
-                    List<String> associatedFilesList = entry.getFiles();
-                    if (associatedFilesList != null)
+                    if(extraInfo.getVisibility() != View.VISIBLE)
                     {
-                        for (String file : associatedFilesList)
+                        extraInfo.removeAllViews();
+
+                        BibtexEntry entry = getItem(position);
+                            //Add views here!!!                    
+
+
+
+                            //Read the Files list from the BibtexEntry
+                        List<String> associatedFilesList = entry.getFiles();
+                        if (associatedFilesList != null)
                         {
-                            final String url = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
+                            for (String file : associatedFilesList)
+                            {
+                                final String url = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
                             
-                            if ( url == null || url.equals("") ) continue;
+                                if ( url == null || url.equals("") ) continue;
                             
-                                //Add an item to the menu and
-                            final Button button = new Button(context);
-                            button.setText(context.getString(R.string.file)+": "+url);
-                            button.setOnClickListener(new OnClickListener() {
-                                    @Override
-                                    public void onClick(View v)
-                                        {
-                                            Uri uri = Uri.parse("file://"+url); // Some PDF viewers seem to need this to open the file properly
-                                            if( uri != null && (new File(uri.getPath())).isFile() ) 
+                                final Button button = new Button(context);
+                                button.setText(context.getString(R.string.file)+": "+url);
+                                button.setOnClickListener(new OnClickListener() {
+                                        @Override
+                                        public void onClick(View v)
                                             {
-                                                    //Determine mime type
-                                                MimeTypeMap map = MimeTypeMap.getSingleton();
-                                                    //String extension = map.getFileExtensionFromUrl(url);
-                                                String extension ="";
-                                                if (url.lastIndexOf(".") != -1) extension = url.substring((url.lastIndexOf(".") + 1), url.length());
+                                                Uri uri = Uri.parse("file://"+url); // Some PDF viewers seem to need this to open the file properly
+                                                if( uri != null && (new File(uri.getPath())).isFile() ) 
+                                                {
+                                                        //Determine mime type
+                                                    MimeTypeMap map = MimeTypeMap.getSingleton();
+                                                        //String extension = map.getFileExtensionFromUrl(url);
+                                                    String extension ="";
+                                                    if (url.lastIndexOf(".") != -1) extension = url.substring((url.lastIndexOf(".") + 1), url.length());
                                                 
-                                                String type = map.getMimeTypeFromExtension(extension);
+                                                    String type = map.getMimeTypeFromExtension(extension);
                                                 
-                                        //Start application to open the file
-                                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                intent.setDataAndType(uri, type);
+                                                        //Start application to open the file
+                                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                    intent.setDataAndType(uri, type);
 //                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                                    try 
+                                                    {
+                                                        context.startActivity(intent);
+                                                    }
+                                                    catch (ActivityNotFoundException e) 
+                                                    {
+                                                        Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+url+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
+                                                }
+                                            }
+                                    });
+                                extraInfo.addView(button);
+                            }
+                        }
+
+
+                            //Read from the URLs list from the BibtexEntry
+                        List<String> associatedUrlList = entry.getUrls(context);
+                        if (associatedUrlList != null)
+                        {
+                            for (final String url : associatedUrlList)
+                            {
+                                if ( url == null || url.equals("") ) continue;
+                            
+                                final Button button = new Button(context);
+                                button.setText(context.getString(R.string.url)+": "+url);
+                                button.setOnClickListener(new OnClickListener() {
+                                        @Override
+                                        public void onClick(View v)
+                                            {
+                            
+                                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                intent.setData(Uri.parse(url));
+//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                 try 
                                                 {
                                                     context.startActivity(intent);
                                                 }
                                                 catch (ActivityNotFoundException e) 
                                                 {
-                                                    Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
                                                 }
                                             }
-                                            else
-                                            {
-                                                Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+url+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
-                                            }
-                                        }
-                                });
-                            extraInfo.addView(button);
+                                    });
+                                extraInfo.addView(button);
+                            }
                         }
-                    }
-
-
-                        //Read from the URLs list from the BibtexEntry
-                    List<String> associatedUrlList = entry.getUrls(context);
-                    if (associatedUrlList != null)
-                    {
-                        for (final String url : associatedUrlList)
-                        {
-                            if ( url == null || url.equals("") ) continue;
-                            final Button button = new Button(context);
-                            button.setText(context.getString(R.string.url)+": "+url);
-                            button.setOnClickListener(new OnClickListener() {
-                                    @Override
-                                    public void onClick(View v)
-                                        {
-                            
-                                            Intent intent = new Intent(Intent.ACTION_VIEW);
-                                            intent.setData(Uri.parse(url));
-//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            try 
-                                            {
-                                                context.startActivity(intent);
-                                            }
-                                            catch (ActivityNotFoundException e) 
-                                            {
-                                                Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-                                });
-                            extraInfo.addView(button);
-                        }
-                    }
     
 
-                        //Read from the DOIs list from the BibtexEntry
-                    List<String> associatedDoiList = entry.getDoiLinks(context);
-                    if (associatedDoiList != null)
-                    {
-                        for (final String doi : associatedDoiList)
+                            //Read from the DOIs list from the BibtexEntry
+                        List<String> associatedDoiList = entry.getDoiLinks(context);
+                        if (associatedDoiList != null)
                         {
-                            if ( doi == null || doi.equals("") ) continue;
-                            final Button button = new Button(context);
-                            button.setText(context.getString(R.string.doi)+": "+doi);
-                            button.setOnClickListener(new OnClickListener() {
-                                    @Override
-                                    public void onClick(View v)
-                                        {
+                            for (final String doi : associatedDoiList)
+                            {
+                                if ( doi == null || doi.equals("") ) continue;
                             
-                                            Intent intent = new Intent(Intent.ACTION_VIEW);
-                                            intent.setData(Uri.parse(doi));
+                                final Button button = new Button(context);
+                                button.setText(context.getString(R.string.doi)+": "+doi);
+                                button.setOnClickListener(new OnClickListener() {
+                                        @Override
+                                        public void onClick(View v)
+                                            {
+                            
+                                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                                intent.setData(Uri.parse(doi));
 //                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                            try 
-                                            {
-                                                context.startActivity(intent);
+                                                try 
+                                                {
+                                                    context.startActivity(intent);
+                                                }
+                                                catch (ActivityNotFoundException e) 
+                                                {
+                                                    Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
+                                                }
                                             }
-                                            catch (ActivityNotFoundException e) 
-                                            {
-                                                Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-                                });
-                            extraInfo.addView(button);
+                                    });
+                                extraInfo.addView(button);
+                            }
                         }
-                    }
 
-                        //Add a share button
+                            //Add a share button
 //                    final String entryString = getEntryAsString(position);
-                    final String entryString = entry.getEntryAsString();
-                    final Button button = new Button(context);
-                    button.setText(context.getString(R.string.share));
-                    button.setOnClickListener(new OnClickListener() {
-                            @Override
-                            public void onClick(View v)
-                                {
-                                    Intent shareIntent = new Intent();
-                                    shareIntent.setAction(Intent.ACTION_SEND);
-                                    shareIntent.setType("plain/text");
-                                    shareIntent.setType("*/*");
-                                    shareIntent.putExtra(Intent.EXTRA_TEXT, entryString);
-                                    try 
+                        final String entryString = entry.getEntryAsString();
+                        final Button button = new Button(context);
+                        button.setText(context.getString(R.string.share));
+                        button.setOnClickListener(new OnClickListener() {
+                                @Override
+                                public void onClick(View v)
                                     {
-                                        context.startActivity(shareIntent);
+                                        Intent shareIntent = new Intent();
+                                        shareIntent.setAction(Intent.ACTION_SEND);
+                                        shareIntent.setType("plain/text");
+                                        shareIntent.setType("*/*");
+                                        shareIntent.putExtra(Intent.EXTRA_TEXT, entryString);
+                                        try 
+                                        {
+                                            context.startActivity(shareIntent);
+                                        }
+                                        catch (ActivityNotFoundException e) 
+                                        {
+                                            Toast.makeText(context, context.getString(R.string.error_starting_share_intent),Toast.LENGTH_SHORT).show();
+                                        }
                                     }
-                                    catch (ActivityNotFoundException e) 
-                                    {
-                                        Toast.makeText(context, context.getString(R.string.error_starting_share_intent),Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                        });
-                    extraInfo.addView(button);
+                            });
+                        extraInfo.addView(button);
                     
-                    extraInfo.setVisibility(View.VISIBLE);
-                }
-            });
+                        extraInfo.setVisibility(View.VISIBLE);
+                    } else {
+                        extraInfo.setVisibility(View.GONE);
+                    }
+                }}
+            );
         return convertView;
     }
 

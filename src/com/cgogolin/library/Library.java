@@ -340,8 +340,10 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
             @Override
             protected void onPreExecute()
             {
-                bibtexListView.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
+                if(bibtexListView != null)
+                    bibtexListView.setVisibility(View.GONE);
+                if(progressBar != null)
+                    progressBar.setVisibility(View.VISIBLE);
             }
             @Override
             protected BibtexAdapter doInBackground(String... libraryPathString) {

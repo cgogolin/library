@@ -90,10 +90,17 @@ public class BibtexEntry extends BaseBibtexEntry {
          ).trim();
     }
     public String getEprintFormated() {
-        // return (
-        //     ( getArchivePrefix().equals("") ? "" : getArchivePrefix()+":" )+
-        //     ( getArxivId().equals("") ? getEprint() : getArxivId()) 
-        //         ).trim();
-        return (getEprint().equals("") ? (getArxivId().equals("") ? "" : getArchivePrefix()+":"+getArxivId()) : getEprint() );
+        if(!getArxivId().equals(""))
+            if(!getArchivePrefix().equals("") && !getArxivId().startsWith(getArchivePrefix()))
+                return getArchivePrefix()+":"+getArxivId();
+            else
+                return getArxivId();
+        else if(!getEprint().equals(""))
+            if(!getArchivePrefix().equals("") && !getEprint().startsWith(getArchivePrefix()))
+                return getArchivePrefix()+":"+getEprint();
+            else
+                return getEprint();
+        else
+            return "";
     }
 }
