@@ -287,7 +287,8 @@ public class BibtexAdapter extends BaseAdapter {
                     }
 
                         //Add a share button
-                    final String entryString = getEntryAsString(position);
+//                    final String entryString = getEntryAsString(position);
+                    final String entryString = entry.getEntryAsString();
                     final Button button = new Button(context);
                     button.setText(context.getString(R.string.share));
                     button.setOnClickListener(new OnClickListener() {
@@ -332,13 +333,13 @@ public class BibtexAdapter extends BaseAdapter {
         return position;
     }
     
-    public String getEntryAsString(int position)
-    {
-        return getEntryAsString(getItem(position));
-    }
-    public String getEntryAsString(BibtexEntry entry) {
-        return entry.getEntryAsString();
-    }
+    // public String getEntryAsString(int position)
+    // {
+    //     return getEntryAsString(getItem(position));
+    // }
+    // public String getEntryAsString(BibtexEntry entry) {
+    //     return entry.getEntryAsString();
+    // }
     
     public int getStatus()
     {
