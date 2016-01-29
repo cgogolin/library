@@ -34,6 +34,8 @@ import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import android.os.AsyncTask;
+
 import android.webkit.MimeTypeMap;
 
 public class BibtexAdapter extends BaseAdapter {
@@ -50,15 +52,21 @@ public class BibtexAdapter extends BaseAdapter {
     public enum SortMode {None, Date, Author, Journal}
     
     private ArrayList<BibtexEntry> bibtexEntryList;
-    private ArrayList<BibtexEntry> filteredBibtexEntryList;
+    private ArrayList<BibtexEntry> displayedBibtexEntryList;
     private String filter = null;
     private int status = BibtexAdapter.STATUS_NOT_INITIALIZED;
 
-    SortMode sortMode = SortMode.None;
+    SortMode sortedAccodingTo = SortMode.None;
+    String filteredAccodingTo = "";
+    SortMode sortingAccodingTo = SortMode.None;
+    String filteringAccodingTo = "";
+
+    AsyncTask<String,Void,Void> applyFilterTask;
+    AsyncTask<BibtexAdapter.SortMode,Void,Void> sortTask;
     
-    public BibtexAdapter(InputStream inputStream)
+    public BibtexAdapter(InputStream inputStream) throws java.io.IOException
     {
-        if(inputStream == null) {    
+        if(inputStream == null) {
             status = STATUS_INPUTSTREAM_NULL;
             return;
         }
@@ -79,31 +87,59 @@ public class BibtexAdapter extends BaseAdapter {
             }
         }
             //Copy all entries to the filtered list
-        filteredBibtexEntryList = new ArrayList<BibtexEntry>();
-        filteredBibtexEntryList.addAll(bibtexEntryList);
+        displayedBibtexEntryList = new ArrayList<BibtexEntry>();
+        displayedBibtexEntryList.addAll(bibtexEntryList);
         
         status = STATUS_OK;
     }
 
-    public void applyFilter(String filter)
-    {
-            //If not successfully initialized or filter invalid or unchanged do nothing
-        if (getStatus() != BibtexAdapter.STATUS_OK || filter == null || filter.equals(this.filter)) return;
-            //Else start filtering
-        status = STATUS_FILTERING;
-            //Clear so that we can populate from scratch
-        filteredBibtexEntryList.clear();
-            //If filter is empty we return everything
-        if (filter.trim().equals(""))
+
+    public void onPreBackgroundOperation() {}
+    public void onPostBackgroundOperation() {}
+    public void onBackgroundOperationCanceled() {}
+    
+    public synchronized void filterInBackground(String filter) {
+        if (filter == null || filteringAccodingTo.equals(filter))
+            return;
+
+        if(applyFilterTask!=null)
         {
-            filteredBibtexEntryList.addAll(bibtexEntryList);
+            applyFilterTask.cancel(true);
         }
-            //Else we filter with "and" ignoring case
+            
+        applyFilterTask = new AsyncTask<String,Void,Void>() {
+                @Override
+                protected void onPreExecute() {
+                        onPreBackgroundOperation();
+                    }
+                @Override
+                protected Void doInBackground(String... filter) {
+                    filteringAccodingTo = filter[0];
+                    filter(filteringAccodingTo);
+                    sortInBackground(sortingAccodingTo);
+                    return null;
+                }
+                @Override
+                protected void onPostExecute(Void v) {
+                    notifyDataSetChanged();
+                    onPostBackgroundOperation();
+                }
+            };
+        applyFilterTask.execute(filter);
+    }                              
+
+
+    private synchronized void filter(String... filter) {
+        ArrayList<BibtexEntry> filteredTmpBibtexEntryList = new ArrayList<BibtexEntry>();
+        if (filter[0].trim().equals(""))
+        {
+            filteredTmpBibtexEntryList.addAll(bibtexEntryList);
+        }
         else
         {
             for ( BibtexEntry entry : bibtexEntryList ) {
                 String blob = entry.getStringBlob().toLowerCase();
-                String[] substrings = filter.toLowerCase().split(" ");
+                String[] substrings = filter[0].toLowerCase().split(" ");
                 boolean matches = true;
                 for (String substring : substrings) 
                 {
@@ -113,79 +149,96 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 }
                 if (matches)
-                    filteredBibtexEntryList.add(entry);
+                    filteredTmpBibtexEntryList.add(entry);
             }
         }
-        this.filter = filter;
-        status = STATUS_OK;
-        sort();
-    }
-
-    public void sort(SortMode sortMode) {
-        if(this.sortMode != sortMode)
-        {
-            int oldStatus = status;
-            this.sortMode = sortMode;
-            sort();
-            status = oldStatus;
-        }
+        displayedBibtexEntryList = filteredTmpBibtexEntryList;
+        filteredAccodingTo = filter[0];
     }
     
-    private void sort() {
-        if(filteredBibtexEntryList==null || status != STATUS_OK) return;
-        status = STATUS_SORTING;
+
+    public synchronized void sortInBackground(SortMode sortMode) {
+        if(sortMode == null || sortingAccodingTo.equals(sortMode))
+            return;
+        
+        if(sortTask!=null)
+        {
+            sortTask.cancel(true);
+        }
+
+        sortTask = new AsyncTask<BibtexAdapter.SortMode,Void,Void>() {
+                @Override
+                protected void onPreExecute() {
+                        onPreBackgroundOperation();
+                    }
+                @Override
+                protected Void doInBackground(BibtexAdapter.SortMode... sortMode) {
+                    filterInBackground(filteringAccodingTo);//Does nothing if filtering is already done, else waits until filtering is finished
+                    
+                    sortingAccodingTo = sortMode[0];
+                    sort(sortingAccodingTo);
+                    return null;
+                }
+                @Override
+                protected void onPostExecute(Void v) {
+                    notifyDataSetChanged();
+                    onPostBackgroundOperation();
+                }        
+            };
+        sortTask.execute(sortMode);
+    }
+
+    
+    private synchronized void sort(SortMode sortMode) {
         switch(sortMode) {
             case None:
-                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
                         @Override
                         public int compare(BibtexEntry entry1, BibtexEntry entry2) {
                             return  entry1.getNumberInFile().compareTo(entry2.getNumberInFile());
                         }
                     });
-                return;
+                break;
             case Date:
-                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
                         @Override
                         public int compare(BibtexEntry entry1, BibtexEntry entry2) {
                             return  (entry2.getDateFormated()+entry2.getNumberInFile()).compareTo(entry1.getDateFormated()+entry1.getNumberInFile());
                         }
                     });
-                return;                
+                break;                
             case Author:
-                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
                         @Override
                         public int compare(BibtexEntry entry1, BibtexEntry entry2) {
                             return  (entry1.getAuthor()+entry1.getNumberInFile()).compareTo(entry2.getAuthor()+entry2.getNumberInFile());
                         }
                     });
-                return;
+                break;
             case Journal:
-                Collections.sort(filteredBibtexEntryList, new Comparator<BibtexEntry>() {
+                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
                         @Override
                         public int compare(BibtexEntry entry1, BibtexEntry entry2) {
                             return  (entry1.getJournal()+entry1.getNumberInFile()).compareTo(entry2.getJournal()+entry2.getNumberInFile());
                         }
                     });
-                return;
+                break;
         }
+        sortedAccodingTo = sortMode;
     }
 
-    
-    public boolean resetFilter()
+    public synchronized void prepareForFiltering()
     {
-        if (filter == null || filter.equals(""))
-            return false;
-        else
-            applyFilter("");
-        return true;
-    }
-
-
-    public void prepareForFiltering() //Calls generateStringBlob() for each entry to speed up subsequent searches
-    {
-        for ( BibtexEntry entry : bibtexEntryList ) {
-            entry.generateStringBlob();
-        }
+        AsyncTask<Void, Void, Void> PrepareBibtexAdapterForFilteringTask = new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... v) {
+                    for ( BibtexEntry entry : bibtexEntryList ) {
+                        entry.getStringBlob();
+                    }
+                    return null;
+                }
+            };
+        PrepareBibtexAdapterForFilteringTask.execute();
     }
 
     private void setTextViewAppearance(TextView textView, String text){
@@ -238,24 +291,23 @@ public class BibtexAdapter extends BaseAdapter {
                         {
                             for (String file : associatedFilesList)
                             {
-                                final String url = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
+                                final String path = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
                             
-                                if ( url == null || url.equals("") ) continue;
+                                if (path == null || path.equals("")) continue;
                             
                                 final Button button = new Button(context);
-                                button.setText(context.getString(R.string.file)+": "+url);
+                                button.setText(context.getString(R.string.file)+": "+path);
                                 button.setOnClickListener(new OnClickListener() {
                                         @Override
                                         public void onClick(View v)
                                             {
-                                                Uri uri = Uri.parse("file://"+url); // Some PDF viewers seem to need this to open the file properly
+                                                Uri uri = Uri.parse("file://"+path); // Some PDF viewers seem to need this to open the file properly
                                                 if( uri != null && (new File(uri.getPath())).isFile() ) 
                                                 {
                                                         //Determine mime type
                                                     MimeTypeMap map = MimeTypeMap.getSingleton();
-                                                        //String extension = map.getFileExtensionFromUrl(url);
                                                     String extension ="";
-                                                    if (url.lastIndexOf(".") != -1) extension = url.substring((url.lastIndexOf(".") + 1), url.length());
+                                                    if (path.lastIndexOf(".") != -1) extension = path.substring((path.lastIndexOf(".") + 1), path.length());
                                                 
                                                     String type = map.getMimeTypeFromExtension(extension);
                                                 
@@ -274,7 +326,7 @@ public class BibtexAdapter extends BaseAdapter {
                                                 }
                                                 else
                                                 {
-                                                    Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+url+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
+                                                    Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+path+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
                                                 }
                                             }
                                     });
@@ -300,7 +352,6 @@ public class BibtexAdapter extends BaseAdapter {
                             
                                                 Intent intent = new Intent(Intent.ACTION_VIEW);
                                                 intent.setData(Uri.parse(url));
-//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                 try 
                                                 {
                                                     context.startActivity(intent);
@@ -385,33 +436,20 @@ public class BibtexAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return filteredBibtexEntryList.size();
+        return displayedBibtexEntryList.size();
     }
 
     @Override
     public BibtexEntry getItem(int position) {
-        return filteredBibtexEntryList.get(position);
+        return displayedBibtexEntryList.get(position);
     }
 
     @Override
     public long getItemId(int position) {
         return position;
-    }
-    
-    // public String getEntryAsString(int position)
-    // {
-    //     return getEntryAsString(getItem(position));
-    // }
-    // public String getEntryAsString(BibtexEntry entry) {
-    //     return entry.getEntryAsString();
-    // }
-    
-    public int getStatus()
-    {
-        return status;
-    }
+    }    
 
-        //Is overriden in Library.java to modify the url based on the target and replacement strings
+        //Can be overridento modify the path for opening files
     String getModifiedPath(String path) {
         return path;
     };

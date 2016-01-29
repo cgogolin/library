@@ -82,7 +82,7 @@ public class BaseBibtexEntry {
     
         //Functions above output raw values, functions below use the LaTeX pretty printer
     
-    public void generateStringBlob()
+    private void generateStringBlob()
     {
         String blob = "";
 //            for (String key : entryMap.keySet()) blob = blob+""+key+"="+entryMap.get(key)+" ";
@@ -95,7 +95,7 @@ public class BaseBibtexEntry {
         latexPrettyPrinterEntryMap.put("stringblob",blob);
     }
     
-    public String getStringBlob() {
+    public synchronized String getStringBlob() {
         if (!latexPrettyPrinterEntryMap.containsKey("stringblob")) generateStringBlob();
         return latexPrettyPrinterEntryMap.get("stringblob");
     }
