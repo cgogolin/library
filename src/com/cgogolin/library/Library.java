@@ -63,7 +63,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     private String pathTargetString = "home/username";
     private String pathReplacementString = "/mnt/sdcard";
     private String pathPrefixString = "";
+    
     BibtexAdapter.SortMode sortMode = BibtexAdapter.SortMode.None;
+    String filter = "";
     
     private String oldQueryText = "";
     private ListView bibtexListView = null;
@@ -185,7 +187,8 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     @Override
     public void onNewIntent(Intent intent) { //Is called when a search is performed
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            filter(intent.getStringExtra(SearchManager.QUERY));
+            filter = intent.getStringExtra(SearchManager.QUERY);
+            filter(filter);
         }
             //Focus the listView and close the keyboard
         bibtexListView.requestFocus();
@@ -435,12 +438,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                     bibtexAdapter.prepareForFiltering();
                     
                         //Bind the Adapter to the UI and update
-                    // bibtexAdapter.notifyDataSetChanged();
+                    bibtexAdapter.notifyDataSetChanged();
                     bibtexListView.setAdapter(bibtexAdapter);
-                    // progressBar.setVisibility(View.GONE);
-                    // bibtexListView.setVisibility(View.VISIBLE);
-
-                    sort(sortMode);
+                    filter(filter);
                 }
                 else
                 {
