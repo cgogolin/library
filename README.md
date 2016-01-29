@@ -12,17 +12,14 @@ GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007.
 
 * Build (for dummies):
 
-Install and set up the Android SDK including the
-necessary fiels for the build target 'android-15'.
-For more information on how to do this please 
-refere to 
+Install and set up the Android SDK. For more information on how to do this please 
+refere to
 
  http://developer.android.com/training/index.html
 
-Then go the base directory of your local working 
-copy and run:
+Then go the base directory of your local working copy and run:
 
-$ android update project --path .
+$ android update project --path . --target 1
 
 You can then perform a debug build by running
 
