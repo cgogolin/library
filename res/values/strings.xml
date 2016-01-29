@@ -40,4 +40,5 @@
     <string name="menu_sort_by_date">Sort by date</string>
     <string name="menu_sort_by_author">Sort by author</string>
     <string name="menu_sort_by_journal">Sort by journal</string>
+    <string name="no_matches">No matches</string>	
 </resources>
