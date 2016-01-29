@@ -210,6 +210,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         actionBar.setTitle("");
         actionBar.setIcon(null);
         actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
         
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
         

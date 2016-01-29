@@ -129,7 +129,7 @@ public class BibtexAdapter extends BaseAdapter {
     }                              
 
 
-    private synchronized void filter(String... filter) {
+    protected synchronized void filter(String... filter) {
         ArrayList<BibtexEntry> filteredTmpBibtexEntryList = new ArrayList<BibtexEntry>();
         if (filter[0].trim().equals(""))
         {
@@ -153,6 +153,12 @@ public class BibtexAdapter extends BaseAdapter {
             }
         }
         displayedBibtexEntryList = filteredTmpBibtexEntryList;
+        if(displayedBibtexEntryList.size() == 0) {
+            BibtexEntry noResultsEntry = new BibtexEntry();
+            noResultsEntry.put("title", "No results");
+            displayedBibtexEntryList.add(noResultsEntry);
+        }
+        
         filteredAccodingTo = filter[0];
     }
     
@@ -189,7 +195,7 @@ public class BibtexAdapter extends BaseAdapter {
     }
 
     
-    private synchronized void sort(SortMode sortMode) {
+    protected synchronized void sort(SortMode sortMode) {
         switch(sortMode) {
             case None:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
