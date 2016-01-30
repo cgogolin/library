@@ -97,7 +97,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         
 
         searchView.setOnQueryTextListener(this); //Implemented in: public boolean onQueryTextChange(String query) and public boolean onQueryTextSubmit(String query)
-        searchView.setMaxWidth(Integer.MAX_VALUE);
+//        searchView.setMaxWidth(Integer.MAX_VALUE);//Makes the overflow menu button disappear on API 23
         
 
         MenuItem SelectedSortMenuItem = null;
