@@ -439,8 +439,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                     bibtexAdapter.prepareForFiltering();
                     
                         //Bind the Adapter to the UI and update
-                    bibtexAdapter.notifyDataSetChanged();
                     bibtexListView.setAdapter(bibtexAdapter);
+                    bibtexAdapter.notifyDataSetChanged();
+                    bibtexAdapter.onPostBackgroundOperation();
                     filter(filter);
                 }
                 else
