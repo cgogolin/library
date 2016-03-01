@@ -435,7 +435,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
             }
             @Override
             protected void onPostExecute(Void v) {
-                if(bibtexAdapter != null){                   
+                if(bibtexAdapter != null){                 
                         //Bind the Adapter to the UI and update
                     bibtexListView.setAdapter(bibtexAdapter);
                     bibtexAdapter.notifyDataSetChanged();
