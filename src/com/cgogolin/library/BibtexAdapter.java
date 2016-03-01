@@ -263,7 +263,7 @@ public class BibtexAdapter extends BaseAdapter {
         }
 
         
-        if(displayedBibtexEntryList.size() == 0) {
+        if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), context.getString(R.string.no_matches));
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_authors), "");
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_journal), "");
@@ -446,7 +446,7 @@ public class BibtexAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        if(displayedBibtexEntryList.size() == 0) 
+        if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0)
             return 1;
         else
             return displayedBibtexEntryList.size();
@@ -454,7 +454,7 @@ public class BibtexAdapter extends BaseAdapter {
 
     @Override
     public BibtexEntry getItem(int position) {
-        if(displayedBibtexEntryList.size() == 0) 
+        if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) 
             return null;
         else
             return displayedBibtexEntryList.get(position);
