@@ -232,9 +232,10 @@ public class BibtexAdapter extends BaseAdapter {
         AsyncTask<Void, Void, Void> PrepareBibtexAdapterForFilteringTask = new AsyncTask<Void, Void, Void>() {
                 @Override
                 protected Void doInBackground(Void... v) {
-                    for ( BibtexEntry entry : bibtexEntryList ) {
-                        entry.getStringBlob();
-                    }
+                    if(bibtexEntryList != null)
+                        for ( BibtexEntry entry : bibtexEntryList ) {
+                            entry.getStringBlob();
+                        }
                     return null;
                 }
             };
