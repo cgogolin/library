@@ -63,14 +63,5 @@
 		android:paddingRight="0sp"
 		android:orientation="vertical"
 		>
-    <TextView
-       android:id="@+id/foo"
-       android:layout_width="fill_parent" 	    
-       android:layout_height="wrap_content"
-       android:textSize="16sp"
-       android:textColor="#505050"
-       android:text="FOO bar!"
-       >
-  </TextView>
   </LinearLayout> 
 </LinearLayout> 

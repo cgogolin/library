@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	  package="com.cgogolin.library"
 	  android:versionCode="16"
-	  android:versionName="3.4">
+	  android:versionName="3.5">
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-sdk android:minSdkVersion="11" android:targetSdkVersion="11" />
   <supports-screens

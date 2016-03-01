@@ -50,11 +50,14 @@ public class BibtexEntry extends BaseBibtexEntry {
         return dois;
     }
     public String getDoiFormated(Context context) {
-        return context.getString(R.string.doi)+": "+getDoi();
+        if(!getDoi().equals(""))
+            return context.getString(R.string.doi)+": "+getDoi();
+        else
+            return "";
     }
-        public String getAuthorsFormated(Context context) {
-        String[] authors = getAuthor().split("and");
-        String[] editors = getEditor().split("and");
+    public String getAuthorsFormated(Context context) {
+        String[] authors = getAuthor().split(" and ");
+        String[] editors = getEditor().split(" and ");
         String authorsString = "";
         boolean firstAuthor = true;
         for (String author : authors)
@@ -82,13 +85,24 @@ public class BibtexEntry extends BaseBibtexEntry {
         return authorsString.trim();
     }
     public String getJournalFormated(Context context) {
-        return (getJournal()+
-                (getVolume().equals("") ? "" : " "+context.getString(R.string.vol)+" "+getVolume() )+
-         (getNumber().equals("") ? "" : " "+context.getString(R.string.num)+" "+getNumber() )+
-         (getPages().equals("") ? "" : " "+context.getString(R.string.page)+" "+getPages() )+
-         (getYear().equals("") ? "" : " ("+(getMonth().equals("") ? "" : getMonth()+" ")+getYear()+")" )+"."
-         ).trim();
+        String jounnal = getJournal();
+        if(!getVolume().equals(""))
+            jounnal += " "+context.getString(R.string.vol)+" "+getVolume();
+        if(!getNumber().equals(""))
+            jounnal += " "+context.getString(R.string.num)+" "+getNumber();
+        if(!getPages().equals(""))
+            jounnal += " "+context.getString(R.string.page)+" "+getPages();
+        if(!getYear().equals("") || !getMonth().equals("")) {
+            jounnal += "(";
+            if(!getMonth().equals("")) 
+                jounnal += getMonth()+" ";
+            jounnal += getYear()+")";
+        }
+        if(!jounnal.equals(""))
+            jounnal += ".";
+        return jounnal;
     }
+    
     public String getEprintFormated() {
         if(!getArxivId().equals(""))
             if(!getArchivePrefix().equals("") && !getArxivId().startsWith(getArchivePrefix()))
@@ -102,5 +116,20 @@ public class BibtexEntry extends BaseBibtexEntry {
                 return getEprint();
         else
             return "";
+    }
+    public String getDateFormated() {
+        String year = getYear();
+        String month = getMonthNumeric();
+        String day = getDay();
+        if(month.equals(""))
+            return year;
+        else
+            if(day.equals(""))
+                return year+"-"+month;
+            else
+                return year+"-"+month+"-"+day;
+    }
+    public String getNumberInFile() {
+        return saveGet("numberInFile");
     }
 }

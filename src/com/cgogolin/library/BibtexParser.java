@@ -22,7 +22,7 @@ public class BibtexParser {
 
             
         String line = null;
-            //int i = 1;
+        int i = 1;
         Boolean eofReached = false;
         String buffer = "";
 
@@ -55,6 +55,8 @@ public class BibtexParser {
 
                 //Create a new BibtexEntry
             BibtexEntry entry = new BibtexEntry();
+            entry.put("numberInFile", Integer.toString(i));
+            i++;
             entry.put("documenttyp",documentTyp);
             entry.put("label",label);
                              

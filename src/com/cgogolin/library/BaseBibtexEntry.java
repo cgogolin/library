@@ -23,7 +23,7 @@ public class BaseBibtexEntry {
         entryMap.put(name, value);
     }
 
-    private String saveGet(String name){
+    protected String saveGet(String name){
         return (entryMap.containsKey(name) ? entryMap.get(name) : "");
     }
 
@@ -82,7 +82,7 @@ public class BaseBibtexEntry {
     
         //Functions above output raw values, functions below use the LaTeX pretty printer
     
-    public void generateStringBlob()
+    private void generateStringBlob()
     {
         String blob = "";
 //            for (String key : entryMap.keySet()) blob = blob+""+key+"="+entryMap.get(key)+" ";
@@ -95,7 +95,7 @@ public class BaseBibtexEntry {
         latexPrettyPrinterEntryMap.put("stringblob",blob);
     }
     
-    public String getStringBlob() {
+    public synchronized String getStringBlob() {
         if (!latexPrettyPrinterEntryMap.containsKey("stringblob")) generateStringBlob();
         return latexPrettyPrinterEntryMap.get("stringblob");
     }
@@ -106,49 +106,58 @@ public class BaseBibtexEntry {
         return saveGetPretty("editor");
     }
     public String getEprint() {
-        return saveGetPretty("eprint");
+        return saveGet("eprint");
     }
     public String getPrimaryclass() {
-        return saveGetPretty("primaryclass");
+        return saveGet("primaryclass");
     }
     public String getHowpublished() {
-        return saveGetPretty("howpublished");
+        return saveGet("howpublished");
     }
     public String getJournal() {
         return saveGetPretty("journal");
     }
     public String getNumber() {
-        return saveGetPretty("number");
+        return saveGet("number");
     }
     public String getPages() {
-        return saveGetPretty("pages");
+        return saveGet("pages");
     }
     public String getTitle() {
         return saveGetPretty("title");
     }
     public String getVolume() {
-        return saveGetPretty("volume");
+        return saveGet("volume");
+    }
+    public String getDay() {
+        String day = saveGet("day");
+        if(day.length() == 2)
+            return day;
+        else if(day.length() == 1)
+            return "0"+day;
+        else
+            return "";
     }
     public String getMonth() {
-        return saveGetPretty("month");
+        return saveGet("month");
     }
-    public int getMonthNumeric() {
+    public String getMonthNumeric() {
         String month = getMonth().trim().replaceAll("[^0-9a-zA-z]", "").toLowerCase();
-        if(month.equals("jan")) return 1;
-        if(month.equals("feb")) return 2;
-        if(month.equals("mar")) return 3;
-        if(month.equals("apr")) return 4;
-        if(month.equals("may")) return 5;
-        if(month.equals("jun")) return 6;
-        if(month.equals("jul")) return 7;
-        if(month.equals("aug")) return 8;
-        if(month.equals("sep")) return 9;
-        if(month.equals("oct")) return 10;
-        if(month.equals("nov")) return 11;
-        if(month.equals("dec")) return 12;
-        return 0;
+        if(month.equals("jan")) return "01";
+        if(month.equals("feb")) return "02";
+        if(month.equals("mar")) return "03";
+        if(month.equals("apr")) return "04";
+        if(month.equals("may")) return "05";
+        if(month.equals("jun")) return "06";
+        if(month.equals("jul")) return "07";
+        if(month.equals("aug")) return "08";
+        if(month.equals("sep")) return "09";
+        if(month.equals("oct")) return "10";
+        if(month.equals("nov")) return "11";
+        if(month.equals("dec")) return "12";
+        return "";
     }
     public String getYear() {
-        return saveGetPretty("year");
+        return saveGet("year");
     }
 }

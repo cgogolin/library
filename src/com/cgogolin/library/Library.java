@@ -1,8 +1,3 @@
-//Can be built and tested using:
-// 
-// ant debug && ~/src/android/android-sdk-linux/platform-tools/adb uninstall com.cgogolin.library &&  ~/src/android/android-sdk-linux/platform-tools/adb install bin/Library-debug.apk
-//
-//
 package com.cgogolin.library;
 
 import java.io.File;
@@ -59,7 +54,7 @@ import android.net.Uri;
 
 import android.os.AsyncTask;
 
-public class Library extends Activity implements SearchView.OnQueryTextListener, SearchView.OnCloseListener
+public class Library extends Activity implements SearchView.OnQueryTextListener
 {
     Context context;
     
@@ -69,13 +64,14 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
     private String pathReplacementString = "/mnt/sdcard";
     private String pathPrefixString = "";
     
+    BibtexAdapter.SortMode sortMode = BibtexAdapter.SortMode.None;
+    String filter = "";
+    
     private String oldQueryText = "";
     private ListView bibtexListView = null;
     private BibtexAdapter bibtexAdapter = null;
     private ProgressBar progressBar  = null;
     private SearchView searchView = null;
-    private boolean applyFilterTaskRunning = false;
-    private String scheduledFilteringString = null;
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) //Inflates the options menu
@@ -85,12 +81,44 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
 
             // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
-        searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+        MenuItem searchMenuItem = menu.findItem(R.id.menu_search);
+        searchView = (SearchView) searchMenuItem.getActionView();
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+//        searchView.setIconifiedByDefault(true);
         searchView.setIconified(false);
-            //Respond to a click on the X 
-        searchView.setOnCloseListener(this); //Implemented in: public void onClose(View view)
+
+        searchView.setOnCloseListener( new SearchView.OnCloseListener() {
+                @Override
+                public boolean onClose() {
+                    searchView.setIconified(false);//prevent collapsing
+                    return true;
+                }
+            });
+        
+
         searchView.setOnQueryTextListener(this); //Implemented in: public boolean onQueryTextChange(String query) and public boolean onQueryTextSubmit(String query)
+//        searchView.setMaxWidth(Integer.MAX_VALUE);//Makes the overflow menu button disappear on API 23
+        
+
+        MenuItem SelectedSortMenuItem = null;
+        switch(sortMode){
+            case None:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_none);
+                break;
+            case Date:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_date);
+                break;
+            case Author:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_author);
+                break;
+            case Journal:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_journal);
+                break;
+        }
+        if(SelectedSortMenuItem!=null)
+//            SelectedSortMenuItem.setIcon(R.drawable.ic_done_white_24dp);
+            SelectedSortMenuItem.setChecked(true);
+        
         return true;
     }
 
@@ -100,37 +128,43 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
     {
         switch (item.getItemId()) 
         {
-                // case android.R.id.home:
-                //     return true;
             case R.id.menu_set_library_path:
                 setLibraryPath();
                 return true;
             case R.id.menu_set_path_conversion:
                 setTargetAndReplacementStrings();
                 return true;
+            case R.id.menu_sort_by_none:
+                sortMode = BibtexAdapter.SortMode.None;
+                sort(sortMode);
+                break;
+            case R.id.menu_sort_by_date:
+                sortMode = BibtexAdapter.SortMode.Date;
+                sort(sortMode);
+                break;
+            case R.id.menu_sort_by_author:
+                sortMode = BibtexAdapter.SortMode.Author;
+                sort(sortMode);
+                break;
+            case R.id.menu_sort_by_journal:
+                sortMode = BibtexAdapter.SortMode.Journal;
+                sort(sortMode);
+                break;
             default:
                 return super.onOptionsItemSelected(item);
         }
+        invalidateOptionsMenu();
+        return true;
     }
     
-
-    @Override
-    public boolean onClose()
-    {
-//        oldQueryText = "";
-//        searchView.setQuery("",false);
-//        resetFilter();
-        return false;
-    }    
-
     
     @Override
     public boolean onQueryTextChange(String query) { //This is a hacky way to determine when the user has reset the text field with the X button 
-        if ( query.length() == 0 && oldQueryText.length() > 1 && bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK ) {
+        if ( query.length() == 0 && oldQueryText.length() > 1) {
             resetFilter();
         }
         oldQueryText = query;
-        return false;
+        return true;
     }
 
     
@@ -143,29 +177,22 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
     @Override
     public void onBackPressed() //Handles clicks on the back button 
     {
-        if (searchView.getQuery().toString().equals(""))
+        if (!searchView.getQuery().toString().equals(""))
+            resetFilter();
+        else
             super.onBackPressed();
-        resetFilter();
     }
 
 
     @Override
     public void onNewIntent(Intent intent) { //Is called when a search is performed
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {   
-            if (bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
-            {
-                    //Apply the filter now
-                applyFilter(intent.getStringExtra(SearchManager.QUERY));
-            }
-            else
-            {
-                    //Schedule a filtering that will be performed in the PrepareBibtexAdapterTask
-                scheduledFilteringString = intent.getStringExtra(SearchManager.QUERY);
-            }
-                //Focus the listView and close the keyboard
-            bibtexListView.requestFocus();
-            hideKeyboard();
-        }   
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            filter = intent.getStringExtra(SearchManager.QUERY);
+            filter(filter);
+        }
+            //Focus the listView and close the keyboard
+        bibtexListView.requestFocus();
+        hideKeyboard();
     }
 
     
@@ -179,6 +206,12 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
         
         loadGlobalSettings(); //Load seetings (uses default if not set)
 
+        ActionBar actionBar = getActionBar();
+        actionBar.setTitle("");
+        actionBar.setIcon(null);
+        actionBar.setDisplayShowTitleEnabled(false);
+        actionBar.setDisplayShowHomeEnabled(false);
+        
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
         
         prepareBibtexListView();
@@ -206,6 +239,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
         globalSettingsEditor.putString("pathTargetString", pathTargetString);
         globalSettingsEditor.putString("pathReplacementString", pathReplacementString);
         globalSettingsEditor.putString("pathPrefixString", pathPrefixString);
+        globalSettingsEditor.putString("sortMode", sortMode.toString());
         globalSettingsEditor.commit();
     }
 
@@ -316,27 +350,26 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
     }
 
 
-    private void loadGlobalSettings() //Load seetings (uses default if not set)
+    private void loadGlobalSettings()
     {
         SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
         libraryPathString = globalSettings.getString("bibtexUrlString", libraryPathString);
         pathTargetString = globalSettings.getString("pathTargetString", pathTargetString);
         pathReplacementString = globalSettings.getString("pathReplacementString", pathReplacementString);
         pathPrefixString = globalSettings.getString("pathPrefixString", pathPrefixString);
+        sortMode = BibtexAdapter.SortMode.valueOf(globalSettings.getString("sortMode", "None"));
     }
 
     
-    private void prepareBibtexListView() //Prepares the bibtexListView
+    private void prepareBibtexListView()
     {
-            //Create the ListView
         bibtexListView = (ListView) findViewById(R.id.bibtex_list_view);
     }
 
 
-    private void prepareBibtexAdapter() //Prepares the bibtexAdapter asynchronously 
+    private void prepareBibtexAdapter()
     {
-            //Create the Adapter that will fill the list with content
-        AsyncTask<String, Void, BibtexAdapter> PrepareBibtexAdapterTask = new AsyncTask<String, Void, BibtexAdapter>() { //Manages asynchronous execution of the creation of the BibtexAdapter and updates the UI before and once finished
+        AsyncTask<String, Void, Void> PrepareBibtexAdapterTask = new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute()
             {
@@ -346,9 +379,8 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
                     progressBar.setVisibility(View.VISIBLE);
             }
             @Override
-            protected BibtexAdapter doInBackground(String... libraryPathString) {
-                    //If the BibtexAdapter is already correctly initialized do nothing
-                if (bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK)
+            protected Void doInBackground(String... libraryPathString) {
+                if (bibtexAdapter == null)
                 {
                     Uri libraryUri = Uri.parse(libraryPathString[0]);
                     File libraryFile = new File(Uri.decode(libraryUri.getEncodedPath()));
@@ -363,67 +395,59 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
                         {
                             inputStream = context.getContentResolver().openInputStream(libraryUri);
                         }
+                        
+                        bibtexAdapter = new BibtexAdapter(inputStream) {
+                                @Override
+                                String getModifiedPath(String path) {
+                                        //Some versions of Android suffer from this very stupid bug:
+                                        //http://stackoverflow.com/questions/16475317/android-bug-string-substring5-replace-empty-string
+                                    return pathPrefixString + (pathTargetString.equals("") ? path : path.replace(pathTargetString,pathReplacementString));
+                                }
+                                @Override
+                                public void onPreBackgroundOperation() {
+                                    bibtexListView.setVisibility(View.GONE);
+                                    progressBar.setVisibility(View.VISIBLE);
+                                    
+                                }
+                                @Override
+                                public void onPostBackgroundOperation() {
+                                    progressBar.setVisibility(View.GONE);
+                                    bibtexListView.setVisibility(View.VISIBLE);
+                                }
+
+                            };
                     }
                     catch(Exception e)
                     {
-                            //Nothing to do here as BibtexAdapter will anyway complain if inputStream=null
+                        bibtexAdapter = null;
                     }
-                    bibtexAdapter = new BibtexAdapter(inputStream) {
-                            @Override
-                            String getModifiedPath(String path) {
-                                    //Some versions of Android suffer from this very stupid bug:
-                                    //http://stackoverflow.com/questions/16475317/android-bug-string-substring5-replace-empty-string
-                                return pathPrefixString + (pathTargetString.equals("") ? path : path.replace(pathTargetString,pathReplacementString));
+                    finally{
+                        if (inputStream != null) {
+                            try {
+                                inputStream.close();
+                            } catch (java.io.IOException e) {
+                                    //Nothing we can do
                             }
-                        };
+                        }
+                    }
                 }
-                    //If it is now correctly initialized apply the filter
-                if(scheduledFilteringString != null && bibtexAdapter != null && bibtexAdapter.getStatus() == BibtexAdapter.STATUS_OK)
-                {
-                    bibtexAdapter.applyFilter(scheduledFilteringString);
-                    scheduledFilteringString = null;
-                }
-                return bibtexAdapter;
+                return null;
             }
             @Override
-            protected void onPostExecute(BibtexAdapter bibtexAdapter) {
-                progressBar.setVisibility(View.GONE);
-                if(bibtexAdapter == null || bibtexAdapter.getStatus() != BibtexAdapter.STATUS_OK)
-                {
-                        //If the Adapter was not initialized correctly complain
-                    if(bibtexAdapter == null)
-                        Toast.makeText(context, context.getString(R.string.adapter_null), Toast.LENGTH_LONG).show();
-                    else
-                        switch (bibtexAdapter.getStatus())
-                        {
-                            case BibtexAdapter.STATUS_NOT_INITIALIZED:
-                                Toast.makeText(context, getString(R.string.adapter_not_initialized), Toast.LENGTH_LONG).show();
-                                break;
-                            case BibtexAdapter.STATUS_IO_EXCEPTION:
-                                Toast.makeText(context, getString(R.string.io_exception_while_reading)+" "+libraryPathString+".", Toast.LENGTH_LONG).show();
-                                break;
-                            case BibtexAdapter.STATUS_IO_EXCEPTION_WHILE_CLOSING:
-                                Toast.makeText(context, getString(R.string.io_exception_while_closing)+" "+libraryPathString+".", Toast.LENGTH_LONG).show();
-                                break;
-                        }
-                    setLibraryPath();
+            protected void onPostExecute(Void v) {
+                if(bibtexAdapter != null){                   
+                        //Bind the Adapter to the UI and update
+                    bibtexListView.setAdapter(bibtexAdapter);
+                    bibtexAdapter.notifyDataSetChanged();
+                    bibtexAdapter.onPostBackgroundOperation();
+                    filter(filter);
+                    bibtexAdapter.prepareForFiltering();
                 }
                 else
                 {
-                        //Bind the Adapter to the UI and update
-                    bibtexAdapter.notifyDataSetChanged();
-                    bibtexListView.setAdapter(bibtexAdapter);
-                    bibtexListView.setVisibility(View.VISIBLE);
-                    
-                        //Do some caching to speed up searches
-                    AsyncTask<BibtexAdapter, Void, Void> PrepareBibtexAdapterForFilteringTask = new AsyncTask<BibtexAdapter, Void, Void>() { //Manages asynchronous execution of the caching that speeds up search operations
-                        @Override
-                        protected Void doInBackground(BibtexAdapter... bibtexAdapter) {
-                            bibtexAdapter[0].prepareForFiltering();
-                            return null;
-                        }
-                    };
-                    PrepareBibtexAdapterForFilteringTask.execute(bibtexAdapter);
+                        //If the Adapter was not initialized correctly complain
+                    Toast.makeText(context, context.getString(R.string.adapter_null), Toast.LENGTH_LONG).show();
+                    setLibraryPath();
                 }
             }
         };
@@ -432,50 +456,22 @@ public class Library extends Activity implements SearchView.OnQueryTextListener,
         
     
 
-    private void applyFilter(String searchString) //Applies the search filter
+    private void filter(String filter)
     {
-            //Check if there is already a filter beeing applied 
-        if (applyFilterTaskRunning) return;
-        applyFilterTaskRunning = true;
-            //Apply the filter
-        AsyncTask<String,Void,String> applyFilterTask = new AsyncTask<String,Void,String>() {//Manages asynchronous execution of the filter process and updates the UI before and once finished - somehow AsyncTask<String,Void,Void> with return null doesn't work, so I went for AsyncTask<String,Void,String>
-            @Override
-            protected void onPreExecute()
-            {
-                bibtexListView.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
-            }
-            @Override
-            protected String doInBackground(String... searchString) {
-                if(bibtexAdapter != null)
-                    bibtexAdapter.applyFilter(searchString[0]);
-                return searchString[0];
-            }
-            @Override
-            protected void onPostExecute(String searchString) {
-                if(bibtexAdapter != null)
-                    bibtexAdapter.notifyDataSetChanged();
-                progressBar.setVisibility(View.GONE);
-                bibtexListView.setVisibility(View.VISIBLE);
-                applyFilterTaskRunning = false;
-            }        
-        };
-        applyFilterTask.execute(searchString);
+        if(bibtexAdapter!=null)
+            bibtexAdapter.filterInBackground(filter);
+    }
+
+    private void resetFilter() {
+        filter("");
     }
     
-
-    private boolean resetFilter() //Resets the search filter
+    private void sort(BibtexAdapter.SortMode sortMode) 
     {
-        if (bibtexAdapter == null) return false;
-        boolean wasReset = bibtexAdapter.resetFilter();
-        if (wasReset) {
-            bibtexAdapter.notifyDataSetChanged();
-            searchView.setQuery("",false);
-        }
-        return wasReset;
+        if(bibtexAdapter!=null)
+            bibtexAdapter.sortInBackground(sortMode);
     }
-
-
+    
     private void hideKeyboard() 
     {
         InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(INPUT_METHOD_SERVICE);
