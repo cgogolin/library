@@ -40,21 +40,11 @@ import android.webkit.MimeTypeMap;
 
 public class BibtexAdapter extends BaseAdapter {
     
-    public static final int STATUS_SORTING = 3;
-    public static final int STATUS_FILTERING = 2;
-    public static final int STATUS_NOT_INITIALIZED = 1;
-    public static final int STATUS_OK = 0;
-    public static final int STATUS_FILE_NOT_FOUND = -1;
-    public static final int STATUS_IO_EXCEPTION = -2;
-    public static final int STATUS_IO_EXCEPTION_WHILE_CLOSING = -3;
-    public static final int STATUS_INPUTSTREAM_NULL = -4;
-
     public enum SortMode {None, Date, Author, Journal}
     
     private ArrayList<BibtexEntry> bibtexEntryList;
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
     private String filter = null;
-    private int status = BibtexAdapter.STATUS_NOT_INITIALIZED;
 
     SortMode sortedAccodingTo = SortMode.None;
     String filteredAccodingTo = "";
@@ -66,31 +56,11 @@ public class BibtexAdapter extends BaseAdapter {
     
     public BibtexAdapter(InputStream inputStream) throws java.io.IOException
     {
-        if(inputStream == null) {
-            status = STATUS_INPUTSTREAM_NULL;
-            return;
-        }
-        try{
-            bibtexEntryList = BibtexParser.parse(inputStream);
-        }
-        catch (java.io.IOException e) {
-            status = STATUS_IO_EXCEPTION;
-            return;
-        }
-        finally{
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (java.io.IOException e) {
-                    status = STATUS_IO_EXCEPTION_WHILE_CLOSING;
-                }
-            }
-        }
+        bibtexEntryList = BibtexParser.parse(inputStream);
+        
             //Copy all entries to the filtered list
         displayedBibtexEntryList = new ArrayList<BibtexEntry>();
         displayedBibtexEntryList.addAll(bibtexEntryList);
-        
-        status = STATUS_OK;
     }
 
 
