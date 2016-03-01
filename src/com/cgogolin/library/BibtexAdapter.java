@@ -235,7 +235,8 @@ public class BibtexAdapter extends BaseAdapter {
 
         
         if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), context.getString(R.string.no_matches));
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), "");
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_authors), "");
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_journal), "");
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_doi), "");
@@ -243,6 +244,7 @@ public class BibtexAdapter extends BaseAdapter {
         }
         else
         {
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), entry.getTitle());
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));

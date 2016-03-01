@@ -9,52 +9,63 @@
 	      android:paddingTop="2sp"
 	      >
   <TextView 
-      android:id="@+id/bibtex_title"
-      android:layout_width="fill_parent" 	    
-      android:layout_height="wrap_content"
-      android:textSize="20sp" 
-      android:textStyle="bold"
-      >
+     android:id="@+id/bibtex_info"
+     android:layout_width="fill_parent"    
+     android:layout_height="fill_parent"
+     android:gravity="center"
+     android:textSize="20sp"
+     android:textColor="#808080"
+     android:paddingTop="30sp"
+     android:paddingBottom="30sp"
+     >
   </TextView>
   <TextView 
-      android:id="@+id/bibtex_authors"
-      android:layout_width="fill_parent" 	    
-      android:layout_height="wrap_content" 
-      android:textSize="18sp"
-      >
+     android:id="@+id/bibtex_title"
+     android:layout_width="fill_parent" 	    
+     android:layout_height="wrap_content"
+     android:textSize="20sp" 
+     android:textStyle="bold"
+     >
   </TextView>
   <TextView 
-      android:id="@+id/bibtex_journal"
-      android:layout_width="fill_parent" 	    
-      android:layout_height="wrap_content" 
-      android:textSize="16sp"
-      android:textColor="#505050"
-      >
+     android:id="@+id/bibtex_authors"
+     android:layout_width="fill_parent" 	    
+     android:layout_height="wrap_content" 
+     android:textSize="18sp"
+     >
+  </TextView>
+  <TextView 
+     android:id="@+id/bibtex_journal"
+     android:layout_width="fill_parent" 	    
+     android:layout_height="wrap_content" 
+     android:textSize="16sp"
+     android:textColor="#505050"
+     >
   </TextView>
   <TextView
-      android:id="@+id/bibtex_doi"
-      android:layout_width="fill_parent" 	    
-      android:layout_height="wrap_content"
-      android:textSize="16sp"
-      android:textColor="#505050"
-      >
+     android:id="@+id/bibtex_doi"
+     android:layout_width="fill_parent" 	    
+     android:layout_height="wrap_content"
+     android:textSize="16sp"
+     android:textColor="#505050"
+     >
   </TextView>
   <TextView
-      android:id="@+id/bibtex_arxiv"
-      android:layout_width="fill_parent" 	    
-      android:layout_height="wrap_content"
-      android:textSize="16sp"
-      android:textColor="#505050"
-      >
+     android:id="@+id/bibtex_arxiv"
+     android:layout_width="fill_parent" 	    
+     android:layout_height="wrap_content"
+     android:textSize="16sp"
+     android:textColor="#505050"
+     >
   </TextView>
-<!--  <TextView
-      android:id="@+id/bibtex_file"
-      android:layout_width="fill_parent" 	    
-      android:layout_height="wrap_content"
-      android:textSize="16sp"
-      android:textColor="#505050"
-      >
-  </TextView>-->
+  <!--  <TextView
+	android:id="@+id/bibtex_file"
+	android:layout_width="fill_parent" 	    
+	android:layout_height="wrap_content"
+	android:textSize="16sp"
+	android:textColor="#505050"
+	>
+	</TextView>-->
   <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 		android:id="@+id/LinearLayout02"
 		android:layout_width="fill_parent"
@@ -64,4 +75,4 @@
 		android:orientation="vertical"
 		>
   </LinearLayout> 
-</LinearLayout> 
+</LinearLayout>
