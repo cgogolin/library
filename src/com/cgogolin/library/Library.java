@@ -22,6 +22,7 @@ import android.app.DownloadManager;
 import android.app.SearchManager;
 
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.Window;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -59,10 +60,15 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     Context context;
     
     public static final String GLOBAL_SETTINGS = "global settings";
+    public static final int LIBRARY_FILE_PICK_REQUEST = 0;
+    
+    private boolean libraryWasPreviouslyInitializedCorrectly = false;
     private String libraryPathString = "/mnt/sdcard/";
     private String pathTargetString = "home/username";
     private String pathReplacementString = "/mnt/sdcard";
     private String pathPrefixString = "";
+
+    private AsyncTask<String, Void, Void> PrepareBibtexAdapterTask = null;
     
     BibtexAdapter.SortMode sortMode = BibtexAdapter.SortMode.None;
     String filter = "";
@@ -72,6 +78,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     private BibtexAdapter bibtexAdapter = null;
     private ProgressBar progressBar  = null;
     private SearchView searchView = null;
+    private AlertDialog setLibraryPathDialog = null;
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) //Inflates the options menu
@@ -129,7 +136,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         switch (item.getItemId()) 
         {
             case R.id.menu_set_library_path:
-                setLibraryPath();
+                showSetLibraryPathDialog();
                 return true;
             case R.id.menu_set_path_conversion:
                 setTargetAndReplacementStrings();
@@ -235,6 +242,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
             //Write settings
         SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
         SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
+        globalSettingsEditor.putBoolean("libraryPreviouslyInitialized", libraryWasPreviouslyInitializedCorrectly);
         globalSettingsEditor.putString("bibtexUrlString", libraryPathString);
         globalSettingsEditor.putString("pathTargetString", pathTargetString);
         globalSettingsEditor.putString("pathReplacementString", pathReplacementString);
@@ -251,7 +259,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     }
     
     
-    public void setLibraryPath() //Open a dialoge to set the bibtex library path from user input
+    public void showSetLibraryPathDialog() //Open a dialoge to set the bibtex library path from user input
     {
         final LinearLayout editTextLayout = new LinearLayout(context);
         editTextLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
@@ -259,31 +267,58 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         editTextLayout.setPadding(16, 0, 16, 0);
         final EditText input = new EditText(this);
         input.setRawInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
-        input.setSingleLine();
         input.setText(libraryPathString);
         editTextLayout.addView(input);
-        new AlertDialog.Builder(this)
+        String message = getString(R.string.please_enter_path_of_bibtex_library);
+        if(bibtexAdapter == null && libraryWasPreviouslyInitializedCorrectly)
+            message = getString(R.string.adapter_failed_to_intialized)+"\n\n"+message;
+		if (android.os.Build.VERSION.SDK_INT >= 19){
+                /*On newer versions of Android offer to use the file system picker to chose the bibtex library file*/
+            final Button button = new Button(context);
+            button.setText(getString(R.string.pick_bibtex_library));
+            button.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v)
+                        {
+                            Intent openDocumentIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                            openDocumentIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                            openDocumentIntent.setType("*/*");
+                            openDocumentIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                            startActivityForResult(openDocumentIntent, LIBRARY_FILE_PICK_REQUEST);
+                        }
+                });
+            editTextLayout.addView(button);
+        }    
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder
             .setTitle(getString(R.string.menu_set_library_path))
-            .setMessage(getString(R.string.please_enter_path_of_bibtex_library))
+            .setMessage(message)
             .setView(editTextLayout)
             .setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() 
                 {
                     @Override
                     public void onClick(DialogInterface dialog, int whichButton) 
                         {
-                            String newLibraryPathString = input.getText().toString();
-                            SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
-                            SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
-                            globalSettingsEditor.putString("bibtexUrlString", newLibraryPathString);
-                            globalSettingsEditor.commit();
-                            libraryPathString = newLibraryPathString;
+                            setLibraryPathDialog = null;
+                            setLibraryPath(input.getText().toString().trim());
                             bibtexAdapter = null;
                             prepareBibtexAdapter();
                         }
                 })
             .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() 
-                    {public void onClick(DialogInterface dialog, int whichButton) {}}) //Do nothing
-            .show();
+                {public void onClick(DialogInterface dialog, int whichButton) {
+                    setLibraryPathDialog = null;
+                    if(bibtexAdapter == null && PrepareBibtexAdapterTask == null)
+                        finish();
+                }})
+            .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        if(bibtexAdapter == null && PrepareBibtexAdapterTask == null)
+                            finish();
+                    }
+                });
+        setLibraryPathDialog = alertDialogBuilder.show();
     }
 
     
@@ -353,6 +388,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     private void loadGlobalSettings()
     {
         SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
+        libraryWasPreviouslyInitializedCorrectly = globalSettings.getBoolean("libraryPreviouslyInitialized", libraryWasPreviouslyInitializedCorrectly);
         libraryPathString = globalSettings.getString("bibtexUrlString", libraryPathString);
         pathTargetString = globalSettings.getString("pathTargetString", pathTargetString);
         pathReplacementString = globalSettings.getString("pathReplacementString", pathReplacementString);
@@ -369,7 +405,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
 
     private void prepareBibtexAdapter()
     {
-        AsyncTask<String, Void, Void> PrepareBibtexAdapterTask = new AsyncTask<String, Void, Void>() {
+        PrepareBibtexAdapterTask = new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute()
             {
@@ -422,6 +458,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                         bibtexAdapter = null;
                     }
                     finally{
+                        PrepareBibtexAdapterTask = null;
                         if (inputStream != null) {
                             try {
                                 inputStream.close();
@@ -435,7 +472,8 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
             }
             @Override
             protected void onPostExecute(Void v) {
-                if(bibtexAdapter != null){                 
+                if(bibtexAdapter != null){
+                    libraryWasPreviouslyInitializedCorrectly = true;
                         //Bind the Adapter to the UI and update
                     bibtexListView.setAdapter(bibtexAdapter);
                     bibtexAdapter.notifyDataSetChanged();
@@ -445,9 +483,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                 }
                 else
                 {
-                        //If the Adapter was not initialized correctly complain
-                    Toast.makeText(context, context.getString(R.string.adapter_null), Toast.LENGTH_LONG).show();
-                    setLibraryPath();
+                    showSetLibraryPathDialog();
                 }
             }
         };
@@ -477,5 +513,33 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
-    
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        switch (requestCode) {
+            case LIBRARY_FILE_PICK_REQUEST:
+                if(resultCode == Activity.RESULT_OK)
+                {
+                    if (intent != null) {
+                        if(setLibraryPathDialog!=null)
+                        {
+                            setLibraryPathDialog.dismiss();
+                            setLibraryPathDialog = null;
+                        }
+                        setLibraryPath(intent.getData().toString());
+                        bibtexAdapter = null;
+                        prepareBibtexAdapter();
+                    }
+                }
+        }
+    }
+
+    void setLibraryPath(String newLibraryPathString) {
+        SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
+        SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
+        globalSettingsEditor.putString("bibtexUrlString", newLibraryPathString);
+        globalSettingsEditor.commit();
+        libraryPathString = newLibraryPathString;
+    }
 }

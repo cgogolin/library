@@ -22,9 +22,9 @@
     <string name="path_conversion_hint">Maybe the path conversion was not set up correctly?</string>
     <string name="error_opening_webbrowser">Error opening webbrowser.</string>
     <string name="error_starting_share_intent">Error starting share intent.</string>
-    <string name="please_enter_path_of_bibtex_library">Please enter the path of the bibtex library file.</string>
+    <string name="please_enter_path_of_bibtex_library">Please specify the path or uri of the bibtex library file.</string>
     <string name="adapter_not_initialized">Adapter not initialized.</string>
-    <string name="adapter_null">Adapter failed to initialize. Maybe the library path/uri is not correct or the SDcard is not yet readable?</string>
+    <string name="adapter_failed_to_intialized">The set bibtex library file could not be read. Maybe the given path or uri is not correct or the SD card is not yet readable?</string>
     <string name="unable_to_find_file">Unable to find file</string>
     <string name="io_exception_while_reading">IO Exception while reading from</string>
     <string name="io_exception_while_closing">IO Exception while closing stream to</string>
@@ -40,5 +40,6 @@
     <string name="menu_sort_by_date">Sort by date</string>
     <string name="menu_sort_by_author">Sort by author</string>
     <string name="menu_sort_by_journal">Sort by journal</string>
-    <string name="no_matches">No matches</string>	
+    <string name="no_matches">No matches</string>
+    <string name="pick_bibtex_library">Pick bibtex library</string>
 </resources>
