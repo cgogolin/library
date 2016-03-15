@@ -95,7 +95,7 @@ public class BibtexEntry extends BaseBibtexEntry {
         if(!getPages().equals(""))
             jounnal += " "+context.getString(R.string.page)+" "+getPages();
         if(!getYear().equals("") || !getMonth().equals("")) {
-            jounnal += "(";
+            jounnal += " (";
             if(!getMonth().equals("")) 
                 jounnal += getMonth()+" ";
             jounnal += getYear()+")";

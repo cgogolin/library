@@ -34,6 +34,10 @@ import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import android.animation.LayoutTransition;
+import android.animation.ObjectAnimator;
+import android.animation.AnimatorSet;
+
 import android.os.AsyncTask;
 
 import android.webkit.MimeTypeMap;
@@ -232,6 +236,20 @@ public class BibtexAdapter extends BaseAdapter {
         BibtexEntry entry = getItem(position);
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bibtexentry, null);
+
+                //test code for animations
+            // AnimatorSet animAppear = new AnimatorSet();
+            // animAppear.setDuration(animationDuration).playTogether(
+            //     ObjectAnimator2.ofFloat(contentRow, "y", 0, 1),
+            //     ObjectAnimator.ofFloat(contentRow, "scaleY", 0, 1));
+            // LayoutTransition layoutTransition = new LayoutTransition();
+            // layoutTransition.setDuration(2000);
+            // layoutTransition.setAnimator(LayoutTransition.APPEARING, animAppear);
+            
+            // LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.LinearLayout01);
+            // LinearLayout extraInfo = (LinearLayout)convertView.findViewById(R.id.LinearLayout02);
+            //     //linearLayout.setLayoutTransition(layoutTransition);
+            // extraInfo.setLayoutTransition(layoutTransition);
         }
 
         

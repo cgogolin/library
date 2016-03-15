@@ -405,6 +405,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
 
     private void prepareBibtexAdapter()
     {
+        if(PrepareBibtexAdapterTask != null)
+            PrepareBibtexAdapterTask.cancel(true);
+        
         PrepareBibtexAdapterTask = new AsyncTask<String, Void, Void>() {
             @Override
             protected void onPreExecute()
@@ -531,6 +534,19 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                             setLibraryPathDialog = null;
                         }
                         setLibraryPath(intent.getData().toString());
+
+                        if (android.os.Build.VERSION.SDK_INT >= 19)
+                        {
+                            try
+                            {
+                                getContentResolver().takePersistableUriPermission(intent.getData(), Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                            }
+                            catch(Exception e)
+                            {
+                                    //Nothing we can do if we don't get the permission
+                            }
+                        }
+                        
                         bibtexAdapter = null;
                         prepareBibtexAdapter();
                     }
