@@ -9,6 +9,8 @@ import java.util.Arrays;
 
 public class BibtexEntry extends BaseBibtexEntry {
 
+    private boolean extraInfoVisible = false;
+    
     public BibtexEntry()
     {
         super();
@@ -131,5 +133,11 @@ public class BibtexEntry extends BaseBibtexEntry {
     }
     public String getNumberInFile() {
         return saveGet("numberInFile");
+    }
+    public boolean extraInfoVisible() {
+        return extraInfoVisible;
+    }
+    public void setExtraInfoVisible(boolean extraInfoVisible) {
+        this.extraInfoVisible = extraInfoVisible;
     }
 }

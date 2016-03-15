@@ -450,7 +450,10 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                                     progressBar.setVisibility(View.GONE);
                                     bibtexListView.setVisibility(View.VISIBLE);
                                 }
-
+                                @Override
+                                public void onEntryClick(View v) {
+                                    hideKeyboard();
+                                }
                             };
                     }
                     catch(Exception e)
