@@ -25,6 +25,10 @@ import android .util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewGroup.MarginLayoutParams;
+import android.view.View.MeasureSpec;
+
 
 import android.view.View.OnClickListener;
 
@@ -34,13 +38,17 @@ import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import android.animation.LayoutTransition;
-import android.animation.ObjectAnimator;
-import android.animation.AnimatorSet;
+//import android.animation.LayoutTransition;
+//import android.animation.ObjectAnimator;
+//import android.animation.AnimatorSet;
 
 import android.os.AsyncTask;
 
 import android.webkit.MimeTypeMap;
+
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.Transformation;
 
 public class BibtexAdapter extends BaseAdapter {
     
@@ -260,8 +268,8 @@ public class BibtexAdapter extends BaseAdapter {
             // //     ObjectAnimator.ofFloat(contentRow, "scaleY", 0, 1));
             // LayoutTransition layoutTransition = new LayoutTransition();
             // layoutTransition.setDuration(1500);
-            // if (android.os.Build.VERSION.SDK_INT >= 14){
-            //     layoutTransition.setAnimateParentHierarchy(true);
+            // // if (android.os.Build.VERSION.SDK_INT >= 14)
+            // //     layoutTransition.setAnimateParentHierarchy(true);
             // // layoutTransition.addTransitionListener(new LayoutTransition.TransitionListener(){
             // //         @Override
             // //         public void startTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType){
@@ -272,7 +280,7 @@ public class BibtexAdapter extends BaseAdapter {
             // //             Log.e("Transitions", "endTransition("+transition+", "+container+", "+view+", "+transitionType);
             // //         }
             // //     });
-            // layoutTransition.enableTransitionType(LayoutTransition.CHANGING);
+            // //layoutTransition.enableTransitionType(LayoutTransition.CHANGING);
             // // layoutTransition.disableTransitionType(LayoutTransition.APPEARING);
             // // layoutTransition.disableTransitionType(LayoutTransition.CHANGE_APPEARING);
             // // layoutTransition.disableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
@@ -280,11 +288,16 @@ public class BibtexAdapter extends BaseAdapter {
             
             // // layoutTransition.setAnimator(LayoutTransition.APPEARING, animAppear);
             
-            // LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.LinearLayout01);
+            // //LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.LinearLayout01);
             // LinearLayout extraInfo = (LinearLayout)convertView.findViewById(R.id.LinearLayout02);
             // //linearLayout.setLayoutTransition(layoutTransition);
             // extraInfo.setLayoutTransition(layoutTransition);
             // //parent.setLayoutTransition(layoutTransition);
+
+            // LayoutTransition layoutTransition = new LayoutTransition();
+            // layoutTransition.setDuration(1500);
+            // LinearLayout extraInfo = (LinearLayout)convertView.findViewById(R.id.LinearLayout02);
+            // extraInfo.setLayoutTransition(layoutTransition);
         }
 
         
@@ -306,9 +319,9 @@ public class BibtexAdapter extends BaseAdapter {
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_arxiv), entry.getEprintFormated());
 
             if(entry.extraInfoVisible())
-                makeExtraInfoVisible(position, convertView, context);
+                makeExtraInfoVisible(position, convertView, context, false);
             else
-                makeExtraInfoInvisible(position, convertView);
+                makeExtraInfoInvisible(position, convertView, false);
             
             convertView.setOnClickListener(new OnClickListener() {
                     @Override
@@ -317,9 +330,9 @@ public class BibtexAdapter extends BaseAdapter {
                         LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
                         if(extraInfo.getVisibility() != View.VISIBLE)
                         {
-                            makeExtraInfoVisible(position, v, context);
+                            makeExtraInfoVisible(position, v, context, true);
                         } else {
-                            makeExtraInfoInvisible(position, v);
+                            makeExtraInfoInvisible(position, v, true);
                         }
                     }
                 }
@@ -355,8 +368,8 @@ public class BibtexAdapter extends BaseAdapter {
     };
     
 
-    private void makeExtraInfoVisible(final int position, View v, final Context context) {
-        LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
+    private void makeExtraInfoVisible(final int position, View v, final Context context, boolean animate) {
+        final LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
         extraInfo.removeAllViews();
         
         BibtexEntry entry = getItem(position);
@@ -500,16 +513,77 @@ public class BibtexAdapter extends BaseAdapter {
                         }
                     }
             });
-        extraInfo.addView(button);
-                            
+        extraInfo.addView(button);           
         extraInfo.setVisibility(View.VISIBLE);
+
+        Log.e("extraInfo", "height="+extraInfo.getMeasuredHeight()+" ");
+        
+        if(animate)
+        {
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
+            extraInfo.measure(View.MeasureSpec.makeMeasureSpec(((LinearLayout)extraInfo.getParent()).getWidth(), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));//Need to call this once so that extraInfo knows how large it wants to be
+            final int bottomMargin = -extraInfo.getMeasuredHeight();
+            layoutParams.setMargins(0, 0, 0, bottomMargin);
+            extraInfo.setLayoutParams(layoutParams);
+            Animation marginAnimation = new Animation() {
+                    @Override
+                    protected void applyTransformation(float interpolatedTime, Transformation t) {
+                        MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams)extraInfo.getLayoutParams();
+                        layoutParams.setMargins(0, 0, 0, (int)((1.0-interpolatedTime)*bottomMargin));
+                        extraInfo.setLayoutParams(layoutParams);
+                    }
+                    @Override
+                    public boolean willChangeBounds() {
+                        return true;
+                    }
+                };
+            marginAnimation.setDuration(200);
+            extraInfo.startAnimation(marginAnimation);
+        }
     }
 
-    private void makeExtraInfoInvisible(final int position, View v) {
-        v.findViewById(R.id.LinearLayout02).setVisibility(View.GONE);
-        
+    private void makeExtraInfoInvisible(final int position, View v, boolean animate) {
+        final LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
+
         BibtexEntry entry = getItem(position);
         entry.setExtraInfoVisible(false);
+            
+        if(animate)
+        {
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
+            final int bottomMargin = -extraInfo.getHeight();
+//            layoutParams.setMargins(0, 0, 0, bottomMargin);
+            extraInfo.setLayoutParams(layoutParams);
+            Animation marginAnimation = new Animation() {
+                    @Override
+                    protected void applyTransformation(float interpolatedTime, Transformation t) {
+                        MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams)extraInfo.getLayoutParams();
+                        layoutParams.setMargins(0, 0, 0, (int)(interpolatedTime*bottomMargin));
+                        extraInfo.setLayoutParams(layoutParams);
+                    }
+                    @Override
+                    public boolean willChangeBounds() {
+                        return true;
+                    }
+                };
+            marginAnimation.setAnimationListener(new Animation.AnimationListener() 
+                {
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        extraInfo.setVisibility(View.GONE);
+                    }
+                    @Override
+                    public void onAnimationStart(Animation animation) {}
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+            marginAnimation.setDuration(200);
+            extraInfo.startAnimation(marginAnimation);
+        }
+        else
+        {
+            extraInfo.setVisibility(View.GONE);
+        }
     }
     
 }
