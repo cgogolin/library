@@ -123,7 +123,6 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                 break;
         }
         if(SelectedSortMenuItem!=null)
-//            SelectedSortMenuItem.setIcon(R.drawable.ic_done_white_24dp);
             SelectedSortMenuItem.setChecked(true);
         
         return true;
@@ -143,19 +142,19 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                 return true;
             case R.id.menu_sort_by_none:
                 sortMode = BibtexAdapter.SortMode.None;
-                sort(sortMode);
+                sortInBackground(sortMode);
                 break;
             case R.id.menu_sort_by_date:
                 sortMode = BibtexAdapter.SortMode.Date;
-                sort(sortMode);
+                sortInBackground(sortMode);
                 break;
             case R.id.menu_sort_by_author:
                 sortMode = BibtexAdapter.SortMode.Author;
-                sort(sortMode);
+                sortInBackground(sortMode);
                 break;
             case R.id.menu_sort_by_journal:
                 sortMode = BibtexAdapter.SortMode.Journal;
-                sort(sortMode);
+                sortInBackground(sortMode);
                 break;
             default:
                 return super.onOptionsItemSelected(item);
@@ -195,7 +194,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     public void onNewIntent(Intent intent) { //Is called when a search is performed
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             filter = intent.getStringExtra(SearchManager.QUERY);
-            filter(filter);
+            filterAndSortInBackground(filter, sortMode);
         }
             //Focus the listView and close the keyboard
         bibtexListView.requestFocus();
@@ -484,7 +483,8 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                     bibtexListView.setAdapter(bibtexAdapter);
                     bibtexAdapter.notifyDataSetChanged();
                     bibtexAdapter.onPostBackgroundOperation();
-                    filter(filter);
+
+                    filterAndSortInBackground(filter, sortMode);
                     bibtexAdapter.prepareForFiltering();
                 }
                 else
@@ -496,28 +496,30 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         PrepareBibtexAdapterTask.execute(libraryPathString);
     } 
         
-    
-
-    private void filter(String filter)
-    {
-        if(bibtexAdapter!=null)
-            bibtexAdapter.filterInBackground(filter);
-    }
-
     private void resetFilter() {
-        filter("");
+        if(bibtexAdapter!=null)
+            bibtexAdapter.filterAndSortInBackground("", null);
     }
     
-    private void sort(BibtexAdapter.SortMode sortMode) 
+    private void sortInBackground(BibtexAdapter.SortMode sortMode) 
     {
         if(bibtexAdapter!=null)
             bibtexAdapter.sortInBackground(sortMode);
+    }
+
+    private void filterAndSortInBackground(String filter, BibtexAdapter.SortMode sortMode)
+    {
+        if(bibtexAdapter!=null) 
+        {
+            bibtexAdapter.filterAndSortInBackground(filter, sortMode);
+        }
     }
     
     private void hideKeyboard() 
     {
         InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        if(inputMethodManager != null && getCurrentFocus() != null)
+            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
     }
 
 

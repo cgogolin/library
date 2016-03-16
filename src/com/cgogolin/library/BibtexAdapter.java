@@ -50,12 +50,12 @@ public class BibtexAdapter extends BaseAdapter {
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
     private String filter = null;
 
-    SortMode sortedAccodingTo = SortMode.None;
+    SortMode sortedAccordingTo = SortMode.None;
     String filteredAccodingTo = "";
-    SortMode sortingAccodingTo = SortMode.None;
-    String filteringAccodingTo = "";
+    SortMode sortingAccordingTo = null;
+    String filteringAccodingTo = null;
 
-    AsyncTask<String,Void,Void> applyFilterTask;
+    AsyncTask<Object,Void,Void> applyFilterTask;
     AsyncTask<BibtexAdapter.SortMode,Void,Void> sortTask;
     
     public BibtexAdapter(InputStream inputStream) throws java.io.IOException
@@ -73,8 +73,9 @@ public class BibtexAdapter extends BaseAdapter {
     public void onBackgroundOperationCanceled() {}
     public void onEntryClick(View v) {}
     
-    public synchronized void filterInBackground(String filter) {
-        if (filter == null || filteringAccodingTo.equals(filter))
+    public synchronized void filterAndSortInBackground(String filter, SortMode sortMode) {
+
+        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortingAccordingTo.equals(sortMode)) )
             return;
 
         if(applyFilterTask!=null)
@@ -82,16 +83,25 @@ public class BibtexAdapter extends BaseAdapter {
             applyFilterTask.cancel(true);
         }
             
-        applyFilterTask = new AsyncTask<String,Void,Void>() {
+        applyFilterTask = new AsyncTask<Object,Void,Void>() {
                 @Override
                 protected void onPreExecute() {
                         onPreBackgroundOperation();
                     }
                 @Override
-                protected Void doInBackground(String... filter) {
-                    filteringAccodingTo = filter[0];
-                    filter(filteringAccodingTo);
-                    sortInBackground(sortingAccodingTo);
+                protected Void doInBackground(Object... params) {
+                    filteringAccodingTo = (String)params[0];
+                    sortingAccordingTo = (SortMode)params[1];
+                    if(!filteredAccodingTo.equals(filteringAccodingTo))
+                    {
+                        filter(filteringAccodingTo);
+                    }
+                    filteringAccodingTo = null;
+                    if(!sortedAccordingTo.equals(sortingAccordingTo)) 
+                    {
+                        sort(sortingAccordingTo);
+                    }
+                    sortingAccordingTo = null;
                     return null;
                 }
                 @Override
@@ -100,8 +110,8 @@ public class BibtexAdapter extends BaseAdapter {
                     onPostBackgroundOperation();
                 }
             };
-        applyFilterTask.execute(filter);
-    }                              
+        applyFilterTask.execute((Object)filter, (Object)sortMode);
+    }
 
 
     protected synchronized void filter(String... filter) {
@@ -128,12 +138,14 @@ public class BibtexAdapter extends BaseAdapter {
             }
         }
         displayedBibtexEntryList = filteredTmpBibtexEntryList;
+        filteringAccodingTo = null;
         filteredAccodingTo = filter[0];
+        sortedAccordingTo = SortMode.None;
     }
     
 
     public synchronized void sortInBackground(SortMode sortMode) {
-        if(sortMode == null || sortingAccodingTo.equals(sortMode))
+        if(sortMode == null)
             return;
         
         if(sortTask!=null)
@@ -148,10 +160,13 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 @Override
                 protected Void doInBackground(BibtexAdapter.SortMode... sortMode) {
-                    filterInBackground(filteringAccodingTo);//Does nothing if filtering is already done, else waits until filtering is finished
-                    
-                    sortingAccodingTo = sortMode[0];
-                    sort(sortingAccodingTo);
+                    filterAndSortInBackground(null, null);//Does nothing if filtering is already done, else waits until filtering is finished
+                    sortingAccordingTo = (SortMode)sortMode[1];
+                    if(!sortedAccordingTo.equals(sortingAccordingTo)) 
+                    {
+                        sort(sortingAccordingTo);
+                    }
+                    sortingAccordingTo = null;
                     return null;
                 }
                 @Override
@@ -199,7 +214,8 @@ public class BibtexAdapter extends BaseAdapter {
                     });
                 break;
         }
-        sortedAccodingTo = sortMode;
+        sortingAccordingTo = null;
+        sortedAccordingTo = sortMode;
     }
 
     public synchronized void prepareForFiltering()
@@ -238,18 +254,37 @@ public class BibtexAdapter extends BaseAdapter {
             convertView = inflater.inflate(R.layout.bibtexentry, null);
 
                 //test code for animations
-            // AnimatorSet animAppear = new AnimatorSet();
-            // animAppear.setDuration(animationDuration).playTogether(
-            //     ObjectAnimator2.ofFloat(contentRow, "y", 0, 1),
-            //     ObjectAnimator.ofFloat(contentRow, "scaleY", 0, 1));
+            // // AnimatorSet animAppear = new AnimatorSet();
+            // // animAppear.setDuration(animationDuration).playTogether(
+            // //     ObjectAnimator2.ofFloat(contentRow, "y", 0, 1),
+            // //     ObjectAnimator.ofFloat(contentRow, "scaleY", 0, 1));
             // LayoutTransition layoutTransition = new LayoutTransition();
-            // layoutTransition.setDuration(2000);
-            // layoutTransition.setAnimator(LayoutTransition.APPEARING, animAppear);
+            // layoutTransition.setDuration(1500);
+            // if (android.os.Build.VERSION.SDK_INT >= 14){
+            //     layoutTransition.setAnimateParentHierarchy(true);
+            // // layoutTransition.addTransitionListener(new LayoutTransition.TransitionListener(){
+            // //         @Override
+            // //         public void startTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType){
+            // //             Log.e("Transitions", "startTransition("+transition+", "+container+", "+view+", "+transitionType);                        
+            // //         }
+            // //         @Override
+            // //         public void endTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType){
+            // //             Log.e("Transitions", "endTransition("+transition+", "+container+", "+view+", "+transitionType);
+            // //         }
+            // //     });
+            // layoutTransition.enableTransitionType(LayoutTransition.CHANGING);
+            // // layoutTransition.disableTransitionType(LayoutTransition.APPEARING);
+            // // layoutTransition.disableTransitionType(LayoutTransition.CHANGE_APPEARING);
+            // // layoutTransition.disableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
+            // // layoutTransition.disableTransitionType(LayoutTransition.DISAPPEARING);
+            
+            // // layoutTransition.setAnimator(LayoutTransition.APPEARING, animAppear);
             
             // LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.LinearLayout01);
             // LinearLayout extraInfo = (LinearLayout)convertView.findViewById(R.id.LinearLayout02);
-            //     //linearLayout.setLayoutTransition(layoutTransition);
+            // //linearLayout.setLayoutTransition(layoutTransition);
             // extraInfo.setLayoutTransition(layoutTransition);
+            // //parent.setLayoutTransition(layoutTransition);
         }
 
         
