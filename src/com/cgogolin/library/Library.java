@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.util.Log;
 
 import android.os.Bundle;
 
@@ -57,7 +58,34 @@ import android.os.AsyncTask;
 
 public class Library extends Activity implements SearchView.OnQueryTextListener
 {
-    Context context;
+    class LibraryBibtexAdapter extends BibtexAdapter {
+        public LibraryBibtexAdapter(InputStream inputStream) throws java.io.IOException {
+            super(inputStream);
+        }
+        @Override
+        String getModifiedPath(String path) {
+                //Some versions of Android suffer from this very stupid bug:
+                //http://stackoverflow.com/questions/16475317/android-bug-string-substring5-replace-empty-string
+            return pathPrefixString + (pathTargetString.equals("") ? path : path.replace(pathTargetString,pathReplacementString));
+        }
+        @Override
+        public void onPreBackgroundOperation() {
+            bibtexListView.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
+            
+        }
+        @Override
+        public void onPostBackgroundOperation() {
+            progressBar.setVisibility(View.GONE);
+            bibtexListView.setVisibility(View.VISIBLE);
+        }
+        @Override
+        public void onEntryClick(View v) {
+            hideKeyboard();
+        }
+    };
+    
+    private Context context;
     
     public static final String GLOBAL_SETTINGS = "global settings";
     public static final int LIBRARY_FILE_PICK_REQUEST = 0;
@@ -75,7 +103,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     
     private String oldQueryText = "";
     private ListView bibtexListView = null;
-    private BibtexAdapter bibtexAdapter = null;
+    private LibraryBibtexAdapter bibtexAdapter = null;
     private ProgressBar progressBar  = null;
     private SearchView searchView = null;
     private AlertDialog setLibraryPathDialog = null;
@@ -205,12 +233,12 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
-        context = this;
-            
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.bibtexlist);
-        
+        context = this;
         loadGlobalSettings(); //Load seetings (uses default if not set)
+//        bibtexAdapter = (LibraryBibtexAdapter) getLastNonConfigurationInstance(); //retreving doesn't work as the on...BackgroundOpertaion() methods lose their references to the Views
 
         ActionBar actionBar = getActionBar();
         actionBar.setTitle("");
@@ -219,18 +247,17 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         actionBar.setDisplayShowHomeEnabled(false);
         
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
-        
-        prepareBibtexListView();
-        bibtexAdapter = (BibtexAdapter) getLastNonConfigurationInstance(); //Try to retrive the saved state of the BibtexAdapter from before a state change
-        prepareBibtexAdapter();
     }
 
     
-    // @Override
-    // protected void onResume()
-    // {   
-    //     super.onResume();
-    // }
+    @Override
+    protected void onResume()
+    {   
+        super.onResume();
+        
+        prepareBibtexListView();
+        prepareBibtexAdapter();
+    }
     
         
     @Override
@@ -251,11 +278,11 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     }
 
 
-    @Override
-    public Object onRetainNonConfigurationInstance() //Saves the state of the BibtexAdapter before a state change
-    {
-        return bibtexAdapter;
-    }
+    // @Override
+    // public Object onRetainNonConfigurationInstance() //retainig doesn't work as the on...BackgroundOpertaion() methods lose their references to the Views
+    // {
+    //     return bibtexAdapter;
+    // }
     
     
     public void showSetLibraryPathDialog() //Open a dialoge to set the bibtex library path from user input
@@ -434,29 +461,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                             inputStream = context.getContentResolver().openInputStream(libraryUri);
                         }
                         
-                        bibtexAdapter = new BibtexAdapter(inputStream) {
-                                @Override
-                                String getModifiedPath(String path) {
-                                        //Some versions of Android suffer from this very stupid bug:
-                                        //http://stackoverflow.com/questions/16475317/android-bug-string-substring5-replace-empty-string
-                                    return pathPrefixString + (pathTargetString.equals("") ? path : path.replace(pathTargetString,pathReplacementString));
-                                }
-                                @Override
-                                public void onPreBackgroundOperation() {
-                                    bibtexListView.setVisibility(View.GONE);
-                                    progressBar.setVisibility(View.VISIBLE);
-                                    
-                                }
-                                @Override
-                                public void onPostBackgroundOperation() {
-                                    progressBar.setVisibility(View.GONE);
-                                    bibtexListView.setVisibility(View.VISIBLE);
-                                }
-                                @Override
-                                public void onEntryClick(View v) {
-                                    hideKeyboard();
-                                }
-                            };
+                        bibtexAdapter = new LibraryBibtexAdapter(inputStream);
                     }
                     catch(Exception e)
                     {

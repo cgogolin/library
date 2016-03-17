@@ -20,7 +20,7 @@ import android.content.ActivityNotFoundException;
 
 import android.net.Uri;
 
-import android .util.Log;
+import android.util.Log;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -169,7 +169,7 @@ public class BibtexAdapter extends BaseAdapter {
                 @Override
                 protected Void doInBackground(BibtexAdapter.SortMode... sortMode) {
                     filterAndSortInBackground(null, null);//Does nothing if filtering is already done, else waits until filtering is finished
-                    sortingAccordingTo = (SortMode)sortMode[1];
+                    sortingAccordingTo = (SortMode)sortMode[0];
                     if(!sortedAccordingTo.equals(sortingAccordingTo)) 
                     {
                         sort(sortingAccordingTo);
@@ -188,6 +188,8 @@ public class BibtexAdapter extends BaseAdapter {
 
     
     protected synchronized void sort(SortMode sortMode) {
+        if(sortMode == null) return;
+        
         switch(sortMode) {
             case None:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
