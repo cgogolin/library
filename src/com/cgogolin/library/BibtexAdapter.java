@@ -20,11 +20,15 @@ import android.content.ActivityNotFoundException;
 
 import android.net.Uri;
 
-import android .util.Log;
+import android.util.Log;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.view.ViewGroup.MarginLayoutParams;
+import android.view.View.MeasureSpec;
+
 
 import android.view.View.OnClickListener;
 
@@ -34,9 +38,17 @@ import android.widget.TextView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+//import android.animation.LayoutTransition;
+//import android.animation.ObjectAnimator;
+//import android.animation.AnimatorSet;
+
 import android.os.AsyncTask;
 
 import android.webkit.MimeTypeMap;
+
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
+import android.view.animation.Transformation;
 
 public class BibtexAdapter extends BaseAdapter {
     
@@ -46,12 +58,12 @@ public class BibtexAdapter extends BaseAdapter {
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
     private String filter = null;
 
-    SortMode sortedAccodingTo = SortMode.None;
+    SortMode sortedAccordingTo = SortMode.None;
     String filteredAccodingTo = "";
-    SortMode sortingAccodingTo = SortMode.None;
-    String filteringAccodingTo = "";
+    SortMode sortingAccordingTo = null;
+    String filteringAccodingTo = null;
 
-    AsyncTask<String,Void,Void> applyFilterTask;
+    AsyncTask<Object,Void,Void> applyFilterTask;
     AsyncTask<BibtexAdapter.SortMode,Void,Void> sortTask;
     
     public BibtexAdapter(InputStream inputStream) throws java.io.IOException
@@ -67,9 +79,11 @@ public class BibtexAdapter extends BaseAdapter {
     public void onPreBackgroundOperation() {}
     public void onPostBackgroundOperation() {}
     public void onBackgroundOperationCanceled() {}
+    public void onEntryClick(View v) {}
     
-    public synchronized void filterInBackground(String filter) {
-        if (filter == null || filteringAccodingTo.equals(filter))
+    public synchronized void filterAndSortInBackground(String filter, SortMode sortMode) {
+
+        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortingAccordingTo.equals(sortMode)) )
             return;
 
         if(applyFilterTask!=null)
@@ -77,16 +91,25 @@ public class BibtexAdapter extends BaseAdapter {
             applyFilterTask.cancel(true);
         }
             
-        applyFilterTask = new AsyncTask<String,Void,Void>() {
+        applyFilterTask = new AsyncTask<Object,Void,Void>() {
                 @Override
                 protected void onPreExecute() {
                         onPreBackgroundOperation();
                     }
                 @Override
-                protected Void doInBackground(String... filter) {
-                    filteringAccodingTo = filter[0];
-                    filter(filteringAccodingTo);
-                    sortInBackground(sortingAccodingTo);
+                protected Void doInBackground(Object... params) {
+                    filteringAccodingTo = (String)params[0];
+                    sortingAccordingTo = (SortMode)params[1];
+                    if(!filteredAccodingTo.equals(filteringAccodingTo))
+                    {
+                        filter(filteringAccodingTo);
+                    }
+                    filteringAccodingTo = null;
+                    if(!sortedAccordingTo.equals(sortingAccordingTo)) 
+                    {
+                        sort(sortingAccordingTo);
+                    }
+                    sortingAccordingTo = null;
                     return null;
                 }
                 @Override
@@ -95,8 +118,8 @@ public class BibtexAdapter extends BaseAdapter {
                     onPostBackgroundOperation();
                 }
             };
-        applyFilterTask.execute(filter);
-    }                              
+        applyFilterTask.execute((Object)filter, (Object)sortMode);
+    }
 
 
     protected synchronized void filter(String... filter) {
@@ -123,12 +146,14 @@ public class BibtexAdapter extends BaseAdapter {
             }
         }
         displayedBibtexEntryList = filteredTmpBibtexEntryList;
+        filteringAccodingTo = null;
         filteredAccodingTo = filter[0];
+        sortedAccordingTo = SortMode.None;
     }
     
 
     public synchronized void sortInBackground(SortMode sortMode) {
-        if(sortMode == null || sortingAccodingTo.equals(sortMode))
+        if(sortMode == null)
             return;
         
         if(sortTask!=null)
@@ -143,10 +168,13 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 @Override
                 protected Void doInBackground(BibtexAdapter.SortMode... sortMode) {
-                    filterInBackground(filteringAccodingTo);//Does nothing if filtering is already done, else waits until filtering is finished
-                    
-                    sortingAccodingTo = sortMode[0];
-                    sort(sortingAccodingTo);
+                    filterAndSortInBackground(null, null);//Does nothing if filtering is already done, else waits until filtering is finished
+                    sortingAccordingTo = (SortMode)sortMode[0];
+                    if(!sortedAccordingTo.equals(sortingAccordingTo)) 
+                    {
+                        sort(sortingAccordingTo);
+                    }
+                    sortingAccordingTo = null;
                     return null;
                 }
                 @Override
@@ -160,6 +188,8 @@ public class BibtexAdapter extends BaseAdapter {
 
     
     protected synchronized void sort(SortMode sortMode) {
+        if(sortMode == null) return;
+        
         switch(sortMode) {
             case None:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
@@ -194,7 +224,8 @@ public class BibtexAdapter extends BaseAdapter {
                     });
                 break;
         }
-        sortedAccodingTo = sortMode;
+        sortingAccordingTo = null;
+        sortedAccordingTo = sortMode;
     }
 
     public synchronized void prepareForFiltering()
@@ -232,7 +263,6 @@ public class BibtexAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bibtexentry, null);
         }
-
         
         if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
@@ -250,165 +280,22 @@ public class BibtexAdapter extends BaseAdapter {
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_doi), entry.getDoiFormated(context));
             setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_arxiv), entry.getEprintFormated());
-            
-            convertView.findViewById(R.id.LinearLayout02).setVisibility(View.GONE);
+
+            if(entry.extraInfoVisible())
+                makeExtraInfoVisible(position, convertView, context, false);
+            else
+                makeExtraInfoInvisible(position, convertView, false);
             
             convertView.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        onEntryClick(v);
                         LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
                         if(extraInfo.getVisibility() != View.VISIBLE)
                         {
-                            extraInfo.removeAllViews();
-                            
-                            BibtexEntry entry = getItem(position);
-                                //Add views here!!!                    
-                            
-                            
-                            
-                                //Read the Files list from the BibtexEntry
-                            List<String> associatedFilesList = entry.getFiles();
-                            if (associatedFilesList != null)
-                            {
-                                for (String file : associatedFilesList)
-                                {
-                                    final String path = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
-                                    
-                                    if (path == null || path.equals("")) continue;
-                                    
-                                    final Button button = new Button(context);
-                                    button.setText(context.getString(R.string.file)+": "+path);
-                                    button.setOnClickListener(new OnClickListener() {
-                                            @Override
-                                            public void onClick(View v)
-                                                {
-                                                    Uri uri = Uri.parse("file://"+path); // Some PDF viewers seem to need this to open the file properly
-                                                    if( uri != null && (new File(uri.getPath())).isFile() ) 
-                                                    {
-                                                            //Determine mime type
-                                                        MimeTypeMap map = MimeTypeMap.getSingleton();
-                                                        String extension ="";
-                                                        if (path.lastIndexOf(".") != -1) extension = path.substring((path.lastIndexOf(".") + 1), path.length());
-                                                        
-                                                        String type = map.getMimeTypeFromExtension(extension);
-                                                        
-                                                            //Start application to open the file
-                                                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                        intent.setDataAndType(uri, type);
-//                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                        try 
-                                                        {
-                                                            context.startActivity(intent);
-                                                        }
-                                                        catch (ActivityNotFoundException e) 
-                                                        {
-                                                            Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+path+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
-                                                    }
-                                                }
-                                        });
-                                    extraInfo.addView(button);
-                                }
-                            }
-
-
-                                //Read from the URLs list from the BibtexEntry
-                            List<String> associatedUrlList = entry.getUrls(context);
-                            if (associatedUrlList != null)
-                            {
-                                for (final String url : associatedUrlList)
-                                {
-                                    if ( url == null || url.equals("") ) continue;
-                                    
-                                    final Button button = new Button(context);
-                                    button.setText(context.getString(R.string.url)+": "+url);
-                                    button.setOnClickListener(new OnClickListener() {
-                                            @Override
-                                            public void onClick(View v)
-                                                {
-                                                    
-                                                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                    intent.setData(Uri.parse(url));
-                                                    try 
-                                                    {
-                                                        context.startActivity(intent);
-                                                    }
-                                                    catch (ActivityNotFoundException e) 
-                                                    {
-                                                        Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
-                                                    }
-                                                }
-                                        });
-                                    extraInfo.addView(button);
-                                }
-                            }
-                            
-                            
-                                //Read from the DOIs list from the BibtexEntry
-                            List<String> associatedDoiList = entry.getDoiLinks(context);
-                            if (associatedDoiList != null)
-                            {
-                                for (final String doi : associatedDoiList)
-                                {
-                                    if ( doi == null || doi.equals("") ) continue;
-                                    
-                                    final Button button = new Button(context);
-                                    button.setText(context.getString(R.string.doi)+": "+doi);
-                                    button.setOnClickListener(new OnClickListener() {
-                                            @Override
-                                            public void onClick(View v)
-                                                {
-                                                    
-                                                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                                                    intent.setData(Uri.parse(doi));
-//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                    try 
-                                                    {
-                                                        context.startActivity(intent);
-                                                    }
-                                                    catch (ActivityNotFoundException e) 
-                                                    {
-                                                        Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
-                                                    }
-                                                }
-                                        });
-                                    extraInfo.addView(button);
-                                }   
-                            }
-
-                                //Add a share button
-//                    final String entryString = getEntryAsString(position);
-                            final String entryString = entry.getEntryAsString();
-                            final Button button = new Button(context);
-                            button.setText(context.getString(R.string.share));
-                            button.setOnClickListener(new OnClickListener() {
-                                    @Override
-                                    public void onClick(View v)
-                                        {
-                                            Intent shareIntent = new Intent();
-                                            shareIntent.setAction(Intent.ACTION_SEND);
-                                            shareIntent.setType("plain/text");
-                                            shareIntent.setType("*/*");
-                                            shareIntent.putExtra(Intent.EXTRA_TEXT, entryString);
-                                            try 
-                                            {
-                                                context.startActivity(shareIntent);
-                                            }
-                                            catch (ActivityNotFoundException e) 
-                                            {
-                                                Toast.makeText(context, context.getString(R.string.error_starting_share_intent),Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
-                                });
-                            extraInfo.addView(button);
-                            
-                            extraInfo.setVisibility(View.VISIBLE);
+                            makeExtraInfoVisible(position, v, context, true);
                         } else {
-                            extraInfo.setVisibility(View.GONE);
+                            makeExtraInfoInvisible(position, v, true);
                         }
                     }
                 }
@@ -444,4 +331,227 @@ public class BibtexAdapter extends BaseAdapter {
     };
     
 
+    private void makeExtraInfoVisible(final int position, View v, final Context context, boolean animate) {
+        final LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
+        extraInfo.removeAllViews();
+        
+        BibtexEntry entry = getItem(position);
+        entry.setExtraInfoVisible(true);
+
+        LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        
+            //Read the Files list from the BibtexEntry
+        List<String> associatedFilesList = entry.getFiles();
+        if (associatedFilesList != null)
+        {
+            for (String file : associatedFilesList)
+            {
+                final String path = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
+                
+                if (path == null || path.equals("")) continue;
+                
+                final Button button = new Button(context);
+                button.setLayoutParams(buttonLayoutParams);
+                button.setText(context.getString(R.string.file)+": "+path);
+                button.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v)
+                            {
+                                Uri uri = Uri.parse("file://"+path); // Some PDF viewers seem to need this to open the file properly
+                                if( uri != null && (new File(uri.getPath())).isFile() ) 
+                                {
+                                        //Determine mime type
+                                    MimeTypeMap map = MimeTypeMap.getSingleton();
+                                    String extension ="";
+                                    if (path.lastIndexOf(".") != -1) extension = path.substring((path.lastIndexOf(".") + 1), path.length());
+                                                        
+                                    String type = map.getMimeTypeFromExtension(extension);
+                                                        
+                                        //Start application to open the file
+                                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                                    intent.setDataAndType(uri, type);
+//                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                    try 
+                                    {
+                                        context.startActivity(intent);
+                                    }
+                                    catch (ActivityNotFoundException e) 
+                                    {
+                                        Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                                else
+                                {
+                                    Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+path+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
+                                }
+                            }
+                    });
+                extraInfo.addView(button);
+            }
+        }
+
+
+            //Read from the URLs list from the BibtexEntry
+        List<String> associatedUrlList = entry.getUrls(context);
+        if (associatedUrlList != null)
+        {
+            for (final String url : associatedUrlList)
+            {
+                if ( url == null || url.equals("") ) continue;
+                                    
+                final Button button = new Button(context);
+                button.setLayoutParams(buttonLayoutParams);
+                button.setText(context.getString(R.string.url)+": "+url);
+                button.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v)
+                            {
+                                                    
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setData(Uri.parse(url));
+                                try 
+                                {
+                                    context.startActivity(intent);
+                                }
+                                catch (ActivityNotFoundException e) 
+                                {
+                                    Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                    });
+                extraInfo.addView(button);
+            }
+        }
+                            
+                            
+            //Read from the DOIs list from the BibtexEntry
+        List<String> associatedDoiList = entry.getDoiLinks(context);
+        if (associatedDoiList != null)
+        {
+            for (final String doi : associatedDoiList)
+            {
+                if ( doi == null || doi.equals("") ) continue;
+                                    
+                final Button button = new Button(context);
+                button.setLayoutParams(buttonLayoutParams);
+                button.setText(context.getString(R.string.doi)+": "+doi);
+                button.setOnClickListener(new OnClickListener() {
+                        @Override
+                        public void onClick(View v)
+                            {
+                                                    
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setData(Uri.parse(doi));
+//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                try 
+                                {
+                                    context.startActivity(intent);
+                                }
+                                catch (ActivityNotFoundException e) 
+                                {
+                                    Toast.makeText(context, context.getString(R.string.error_opening_webbrowser),Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                    });
+                extraInfo.addView(button);
+            }   
+        }
+
+            //Add a share button
+        final String entryString = entry.getEntryAsString();
+        final Button button = new Button(context);
+        button.setLayoutParams(buttonLayoutParams);
+        button.setText(context.getString(R.string.share));
+        button.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v)
+                    {
+                        Intent shareIntent = new Intent();
+                        shareIntent.setAction(Intent.ACTION_SEND);
+                        shareIntent.setType("plain/text");
+                        shareIntent.setType("*/*");
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, entryString);
+                        try 
+                        {
+                            context.startActivity(shareIntent);
+                        }
+                        catch (ActivityNotFoundException e) 
+                        {
+                            Toast.makeText(context, context.getString(R.string.error_starting_share_intent),Toast.LENGTH_SHORT).show();
+                        }
+                    }
+            });
+        extraInfo.addView(button);           
+        extraInfo.setVisibility(View.VISIBLE);
+
+        Log.e("extraInfo", "height="+extraInfo.getMeasuredHeight()+" ");
+        
+        if(animate)
+        {
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.WRAP_CONTENT);
+            extraInfo.measure(View.MeasureSpec.makeMeasureSpec(((LinearLayout)extraInfo.getParent()).getWidth(), View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));//Need to call this once so that extraInfo knows how large it wants to be
+            final int bottomMargin = -extraInfo.getMeasuredHeight();
+            layoutParams.setMargins(0, 0, 0, bottomMargin);
+            extraInfo.setLayoutParams(layoutParams);
+            Animation marginAnimation = new Animation() {
+                    @Override
+                    protected void applyTransformation(float interpolatedTime, Transformation t) {
+                        MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams)extraInfo.getLayoutParams();
+                        layoutParams.setMargins(0, 0, 0, (int)((1.0-interpolatedTime)*bottomMargin));
+                        extraInfo.setLayoutParams(layoutParams);
+                    }
+                    @Override
+                    public boolean willChangeBounds() {
+                        return true;
+                    }
+                };
+            marginAnimation.setDuration(200);
+            extraInfo.startAnimation(marginAnimation);
+        }
+    }
+
+    private void makeExtraInfoInvisible(final int position, View v, boolean animate) {
+        final LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
+
+        BibtexEntry entry = getItem(position);
+        entry.setExtraInfoVisible(false);
+            
+        if(animate)
+        {
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.WRAP_CONTENT);
+            final int bottomMargin = -extraInfo.getHeight();
+            extraInfo.setLayoutParams(layoutParams);
+            Animation marginAnimation = new Animation() {
+                    @Override
+                    protected void applyTransformation(float interpolatedTime, Transformation t) {
+                        MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams)extraInfo.getLayoutParams();
+                        layoutParams.setMargins(0, 0, 0, (int)(interpolatedTime*bottomMargin));
+                        extraInfo.setLayoutParams(layoutParams);
+                    }
+                    @Override
+                    public boolean willChangeBounds() {
+                        return true;
+                    }
+                };
+            marginAnimation.setAnimationListener(new Animation.AnimationListener() 
+                {
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        extraInfo.setVisibility(View.GONE);
+                    }
+                    @Override
+                    public void onAnimationStart(Animation animation) {}
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {}
+                });
+            marginAnimation.setDuration(200);
+            extraInfo.startAnimation(marginAnimation);
+        }
+        else
+        {
+            extraInfo.setVisibility(View.GONE);
+        }
+    }
+    
 }
+

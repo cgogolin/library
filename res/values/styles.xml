@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <style name="LibraryTheme" parent="android:style/Theme.Holo.Light.DarkActionBar" />
+  <style name="LibraryTheme" parent="android:style/Theme.Holo.Light.DarkActionBar">
+    <item name="android:actionBarStyle">@style/LibraryActionBarStyle</item>
+  </style>
+  <style name="LibraryActionBarStyle" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">
+  </style>
 </resources>
+

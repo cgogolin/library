@@ -121,7 +121,7 @@ public class BaseBibtexEntry {
         return saveGet("number");
     }
     public String getPages() {
-        return saveGet("pages");
+        return saveGetPretty("pages");
     }
     public String getTitle() {
         return saveGetPretty("title");
