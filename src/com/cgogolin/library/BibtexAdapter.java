@@ -262,46 +262,7 @@ public class BibtexAdapter extends BaseAdapter {
         BibtexEntry entry = getItem(position);
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bibtexentry, null);
-
-                //test code for animations
-            // // AnimatorSet animAppear = new AnimatorSet();
-            // // animAppear.setDuration(animationDuration).playTogether(
-            // //     ObjectAnimator2.ofFloat(contentRow, "y", 0, 1),
-            // //     ObjectAnimator.ofFloat(contentRow, "scaleY", 0, 1));
-            // LayoutTransition layoutTransition = new LayoutTransition();
-            // layoutTransition.setDuration(1500);
-            // // if (android.os.Build.VERSION.SDK_INT >= 14)
-            // //     layoutTransition.setAnimateParentHierarchy(true);
-            // // layoutTransition.addTransitionListener(new LayoutTransition.TransitionListener(){
-            // //         @Override
-            // //         public void startTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType){
-            // //             Log.e("Transitions", "startTransition("+transition+", "+container+", "+view+", "+transitionType);                        
-            // //         }
-            // //         @Override
-            // //         public void endTransition(LayoutTransition transition, ViewGroup container, View view, int transitionType){
-            // //             Log.e("Transitions", "endTransition("+transition+", "+container+", "+view+", "+transitionType);
-            // //         }
-            // //     });
-            // //layoutTransition.enableTransitionType(LayoutTransition.CHANGING);
-            // // layoutTransition.disableTransitionType(LayoutTransition.APPEARING);
-            // // layoutTransition.disableTransitionType(LayoutTransition.CHANGE_APPEARING);
-            // // layoutTransition.disableTransitionType(LayoutTransition.CHANGE_DISAPPEARING);
-            // // layoutTransition.disableTransitionType(LayoutTransition.DISAPPEARING);
-            
-            // // layoutTransition.setAnimator(LayoutTransition.APPEARING, animAppear);
-            
-            // //LinearLayout linearLayout = (LinearLayout)convertView.findViewById(R.id.LinearLayout01);
-            // LinearLayout extraInfo = (LinearLayout)convertView.findViewById(R.id.LinearLayout02);
-            // //linearLayout.setLayoutTransition(layoutTransition);
-            // extraInfo.setLayoutTransition(layoutTransition);
-            // //parent.setLayoutTransition(layoutTransition);
-
-            // LayoutTransition layoutTransition = new LayoutTransition();
-            // layoutTransition.setDuration(1500);
-            // LinearLayout extraInfo = (LinearLayout)convertView.findViewById(R.id.LinearLayout02);
-            // extraInfo.setLayoutTransition(layoutTransition);
         }
-
         
         if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
@@ -376,7 +337,9 @@ public class BibtexAdapter extends BaseAdapter {
         
         BibtexEntry entry = getItem(position);
         entry.setExtraInfoVisible(true);
-                            
+
+        LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        
             //Read the Files list from the BibtexEntry
         List<String> associatedFilesList = entry.getFiles();
         if (associatedFilesList != null)
@@ -388,6 +351,7 @@ public class BibtexAdapter extends BaseAdapter {
                 if (path == null || path.equals("")) continue;
                 
                 final Button button = new Button(context);
+                button.setLayoutParams(buttonLayoutParams);
                 button.setText(context.getString(R.string.file)+": "+path);
                 button.setOnClickListener(new OnClickListener() {
                         @Override
@@ -436,6 +400,7 @@ public class BibtexAdapter extends BaseAdapter {
                 if ( url == null || url.equals("") ) continue;
                                     
                 final Button button = new Button(context);
+                button.setLayoutParams(buttonLayoutParams);
                 button.setText(context.getString(R.string.url)+": "+url);
                 button.setOnClickListener(new OnClickListener() {
                         @Override
@@ -468,6 +433,7 @@ public class BibtexAdapter extends BaseAdapter {
                 if ( doi == null || doi.equals("") ) continue;
                                     
                 final Button button = new Button(context);
+                button.setLayoutParams(buttonLayoutParams);
                 button.setText(context.getString(R.string.doi)+": "+doi);
                 button.setOnClickListener(new OnClickListener() {
                         @Override
@@ -492,9 +458,9 @@ public class BibtexAdapter extends BaseAdapter {
         }
 
             //Add a share button
-//                    final String entryString = getEntryAsString(position);
         final String entryString = entry.getEntryAsString();
         final Button button = new Button(context);
+        button.setLayoutParams(buttonLayoutParams);
         button.setText(context.getString(R.string.share));
         button.setOnClickListener(new OnClickListener() {
                 @Override
@@ -522,8 +488,8 @@ public class BibtexAdapter extends BaseAdapter {
         
         if(animate)
         {
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
-            extraInfo.measure(View.MeasureSpec.makeMeasureSpec(((LinearLayout)extraInfo.getParent()).getWidth(), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));//Need to call this once so that extraInfo knows how large it wants to be
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.WRAP_CONTENT);
+            extraInfo.measure(View.MeasureSpec.makeMeasureSpec(((LinearLayout)extraInfo.getParent()).getWidth(), View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));//Need to call this once so that extraInfo knows how large it wants to be
             final int bottomMargin = -extraInfo.getMeasuredHeight();
             layoutParams.setMargins(0, 0, 0, bottomMargin);
             extraInfo.setLayoutParams(layoutParams);

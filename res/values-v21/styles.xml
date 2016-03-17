@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <style name="LibraryTheme" parent="@android:style/Theme.Material.Light.DarkActionBar" />
+  <style name="LibraryTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+    <item name="android:actionBarStyle">@style/LibraryActionBarStyle</item>
+    <item name="android:colorAccent">@color/accent</item>
+  </style>
+  <style name="LibraryActionBarStyle" parent="@android:style/Widget.Material.ActionBar">
+    <item name="android:colorAccent">@color/accent</item>
+  </style>
 </resources>
