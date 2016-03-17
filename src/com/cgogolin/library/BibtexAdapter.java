@@ -520,7 +520,6 @@ public class BibtexAdapter extends BaseAdapter {
         {
             LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.WRAP_CONTENT);
             final int bottomMargin = -extraInfo.getHeight();
-//            layoutParams.setMargins(0, 0, 0, bottomMargin);
             extraInfo.setLayoutParams(layoutParams);
             Animation marginAnimation = new Animation() {
                     @Override
