@@ -518,7 +518,7 @@ public class BibtexAdapter extends BaseAdapter {
             
         if(animate)
         {
-            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT,LayoutParams.WRAP_CONTENT);
+            LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT,LayoutParams.WRAP_CONTENT);
             final int bottomMargin = -extraInfo.getHeight();
 //            layoutParams.setMargins(0, 0, 0, bottomMargin);
             extraInfo.setLayoutParams(layoutParams);
