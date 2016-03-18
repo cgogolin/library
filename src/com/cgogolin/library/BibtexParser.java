@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
 
+import android.util.Log;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -51,7 +53,7 @@ public class BibtexParser {
             }
                 
             String documentTyp = buffer.substring(0,buffer.indexOf('{')).trim().toLowerCase();
-            String label = buffer.substring(buffer.indexOf('{')+1,buffer.indexOf(',')).trim();
+            String label = buffer.substring(buffer.indexOf('{')+1,buffer.indexOf(',', buffer.indexOf('{'))).trim();
 
                 //Create a new BibtexEntry
             BibtexEntry entry = new BibtexEntry();

@@ -225,8 +225,11 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
             filterAndSortInBackground(filter, sortMode);
         }
             //Focus the listView and close the keyboard
-        bibtexListView.requestFocus();
-        hideKeyboard();
+        if(bibtexListView != null)
+        {
+            bibtexListView.requestFocus();
+            hideKeyboard();
+        }
     }
 
     
@@ -465,6 +468,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                     }
                     catch(Exception e)
                     {
+                        Log.e(getString(R.string.app_name), getString(R.string.exception_while_loading_library)+e.getMessage(), e);
                         bibtexAdapter = null;
                     }
                     finally{

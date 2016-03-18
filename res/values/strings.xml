@@ -42,4 +42,5 @@
     <string name="menu_sort_by_journal">Sort by journal</string>
     <string name="no_matches">No matches</string>
     <string name="pick_bibtex_library">Pick bibtex library</string>
+    <string name="exception_while_loading_library">Exception while loading the bibtex library file: </string>
 </resources>

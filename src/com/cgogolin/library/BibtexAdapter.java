@@ -483,8 +483,6 @@ public class BibtexAdapter extends BaseAdapter {
             });
         extraInfo.addView(button);           
         extraInfo.setVisibility(View.VISIBLE);
-
-        Log.e("extraInfo", "height="+extraInfo.getMeasuredHeight()+" ");
         
         if(animate)
         {
