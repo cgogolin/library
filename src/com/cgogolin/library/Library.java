@@ -107,6 +107,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     private ProgressBar progressBar  = null;
     private SearchView searchView = null;
     private AlertDialog setLibraryPathDialog = null;
+    private AlertDialog setTargetAndReplacementStringsDialog = null;
     
     @Override
     public boolean onCreateOptionsMenu(Menu menu) //Inflates the options menu
@@ -166,7 +167,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                 showSetLibraryPathDialog();
                 return true;
             case R.id.menu_set_path_conversion:
-                setTargetAndReplacementStrings();
+                showSetTargetAndReplacementStringsDialog();
                 return true;
             case R.id.menu_sort_by_none:
                 sortMode = BibtexAdapter.SortMode.None;
@@ -290,6 +291,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     
     public void showSetLibraryPathDialog() //Open a dialoge to set the bibtex library path from user input
     {
+        if(setLibraryPathDialog != null && setLibraryPathDialog.isShowing())
+            return;
+        
         final LinearLayout editTextLayout = new LinearLayout(context);
         editTextLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         editTextLayout.setOrientation(1);
@@ -351,8 +355,11 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     }
 
     
-    public void setTargetAndReplacementStrings() //Open a dialoge to set the target and repacement strings from user input
+    public void showSetTargetAndReplacementStringsDialog() //Open a dialoge to set the target and repacement strings from user input
     {
+        if(setTargetAndReplacementStringsDialog != null && setTargetAndReplacementStringsDialog.isShowing())
+            return;
+        
         final LinearLayout editTextLayout = new LinearLayout(context);
         editTextLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
         editTextLayout.setOrientation(1);
@@ -381,36 +388,39 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         editTextLayout.addView(input2);
         editTextLayout.addView(view3);
         editTextLayout.addView(input3);        
-        new AlertDialog.Builder(this)
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
             .setTitle(getString(R.string.menu_set_path_conversion))
             .setMessage(getString(R.string.menu_set_path_conversion_help))
             .setView(editTextLayout)
             .setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() 
                 {
                     @Override
-                    public void onClick(DialogInterface dialog, int whichButton) 
-                        {
-                            String newPathTargetString = input1.getText().toString().trim();
-                            String newPathReplacementString = input2.getText().toString().trim();
-                            String newpathPrefixString = input3.getText().toString().trim(); 
-                            SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
-                            SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
-                            globalSettingsEditor.putString("pathTargetString", newPathTargetString);
-                            globalSettingsEditor.putString("pathReplacementString", newPathReplacementString);
-                            globalSettingsEditor.putString("pathPrefixString", newpathPrefixString);
-                            globalSettingsEditor.commit();
-                            pathTargetString = newPathTargetString;
-                            pathReplacementString = newPathReplacementString;
-                            pathPrefixString = newpathPrefixString;
-                                //loadGlobalSettings();
-                        }
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        String newPathTargetString = input1.getText().toString().trim();
+                        String newPathReplacementString = input2.getText().toString().trim();
+                        String newpathPrefixString = input3.getText().toString().trim(); 
+                        SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
+                        SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
+                        globalSettingsEditor.putString("pathTargetString", newPathTargetString);
+                        globalSettingsEditor.putString("pathReplacementString", newPathReplacementString);
+                        globalSettingsEditor.putString("pathPrefixString", newpathPrefixString);
+                        globalSettingsEditor.commit();
+                        pathTargetString = newPathTargetString;
+                        pathReplacementString = newPathReplacementString;
+                        pathPrefixString = newpathPrefixString;
+                        
+                        setTargetAndReplacementStringsDialog = null;
+                    }
                 })
             .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() 
                 {
                     @Override
-                    public void onClick(DialogInterface dialog, int whichButton) {}
-                }) //Do nothing
-            .show();
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        setTargetAndReplacementStringsDialog = null;
+                    }
+                });
+        
+        setTargetAndReplacementStringsDialog = alertDialogBuilder.show();
     }
 
 
