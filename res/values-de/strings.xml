@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Library</string>
+    <string name="app_label">Library</string>
+    <string name="menu_set_library_path">Pfad der BibTeX-Datei einstellen</string>
+    <string name="menu_set_path_conversion">Pfad-Umwandlung einstellen</string>
+    <string name="menu_search">Filtern</string>
+    <string name="search_hint">Die BibTeX-Bibliothek filtern</string>
+    <string name="menu_set_path_conversion_help">Beim Öffnen lokaler Dateien der BibTeX-Einträge, wie pdf- oder djvu-Dateien, wird der im \'file\' Feld des BibTeX-Eintrages angegebene Pfad wie folgt modifiziert: Die Zeichenkette \'Finden\' wird durch \'Ersetzen durch\' ersetzt, und dem Ergebnis wird \'Präfix\' vorangestellt.</string>
+    <string name="save">Speichern</string>
+    <string name="open">Öffnen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="target">Finden</string>
+    <string name="replacement">Ersetzen durch</string>
+    <string name="prefix">Präfix</string>
+    <string name="file">Datei</string>
+    <string name="url">url</string>
+    <string name="doi">doi</string>
+    <string name="share">Teilen...</string>
+    <string name="no_application_to_view_files_of_type">Keine Anwendung gefunden zum Betrachten von Dateien des Typs:</string>
+    <string name="couldnt_find_file">Datei nicht gefunden:</string>
+    <string name="path_conversion_hint">Vielleicht ist die Pfad-Umwandlung nicht korrekt eingestellt?</string>
+    <string name="error_opening_webbrowser">Fehler beim Öffnen des Webbrowsers.</string>
+    <string name="error_starting_share_intent">Fehler beim Teilen.</string>
+    <string name="please_enter_path_of_bibtex_library">Bitte Pfad oder uri der BibTeX-Datei angeben.</string>
+    <string name="adapter_not_initialized">Adapter nicht initialisiert.</string>
+    <string name="adapter_failed_to_intialized">Die gewählte BibTeX-Datei konnte nicht gelesen werden. Vielleicht sind der angegebene Pfad oder die uri nicht korrekt, oder die SD-Karte noch nicht lesbar?</string>
+    <string name="unable_to_find_file">Konnte Datei nicht finden:</string>
+    <string name="io_exception_while_reading">IO-Ausnahme während des Lesens von</string>
+    <string name="io_exception_while_closing">IO-Ausnahme während des Schließens des Datenstromes nach</string>
+    <string name="files">Dateien</string>
+    <string name="arxiv_url_prefix">http://arxiv.org/abs/</string>
+    <string name="doi_url_prefix">http://dx.doi.org/</string>
+    <string name="edited_by">ed. durch</string>
+    <string name="vol">Vol.</string>
+    <string name="num">Num.</string>
+    <string name="page">S.</string>
+    <string name="menu_sort">Sortieren</string>
+    <string name="menu_sort_by_none">Nach Reihenfolge in der Bibliothek sortieren</string>
+    <string name="menu_sort_by_date">Nach Datum sortieren</string>
+    <string name="menu_sort_by_author">Nach Autor sortieren</string>
+    <string name="menu_sort_by_journal">Nach Journal sortieren</string>
+    <string name="no_matches">Keine Treffer</string>
+    <string name="pick_bibtex_library">BibTeX-Datei wählen</string>
+    <string name="exception_while_loading_library">Ausnahmefehler beim laden der BibTeX-Datei: </string>
+</resources>
