@@ -213,7 +213,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     public void onBackPressed() //Handles clicks on the back button 
     {
         if (!searchView.getQuery().toString().equals(""))
-            resetFilter();
+            searchView.setQuery("", true);
         else
             super.onBackPressed();
     }
@@ -239,16 +239,16 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.bibtexlist);
-        context = this;
-        loadGlobalSettings(); //Load seetings (uses default if not set)
-//        bibtexAdapter = (LibraryBibtexAdapter) getLastNonConfigurationInstance(); //retreving doesn't work as the on...BackgroundOpertaion() methods lose their references to the Views
-
         ActionBar actionBar = getActionBar();
         actionBar.setTitle("");
         actionBar.setIcon(null);
         actionBar.setDisplayShowTitleEnabled(false);
         actionBar.setDisplayShowHomeEnabled(false);
+        
+        setContentView(R.layout.bibtexlist);
+        context = this;
+        loadGlobalSettings(); //Load seetings (uses default if not set)
+//        bibtexAdapter = (LibraryBibtexAdapter) getLastNonConfigurationInstance(); //retreving doesn't work as the on...BackgroundOpertaion() methods lose their references to the Views
         
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
     }
