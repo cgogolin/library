@@ -581,7 +581,6 @@ public class LatexPrettyPrinter {
         map.put("\\lazysinv ","\u223E");
         map.put("\\langle ","\u2329");
         map.put("\\lambda ","\u03BB");
-        map.put("\\l ","\u0142");
         map.put("\\kappa ","\u03BA");
         map.put("\\k","\u0328");
         map.put("\\jupiter ","\u2643");
@@ -840,7 +839,6 @@ public class LatexPrettyPrinter {
         map.put("\\LeftDownVectorBar ","\u2959");
         map.put("\\LeftDownTeeVector ","\u2961");
         map.put("\\Lambda ","\u039B");
-        map.put("\\L ","\u0141");
         map.put("\\Koppa ","\u03DE");
         map.put("\\Kappa ","\u039A");
         map.put("\\Iota ","\u0399");
