@@ -258,7 +258,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     protected void onResume()
     {   
         super.onResume();
-        
+
         prepareBibtexListView();
         prepareBibtexAdapter();
     }
@@ -444,6 +444,28 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
 
     private void prepareBibtexAdapter()
     {
+            //If we already have an adapter, throw it away if if the file has changed since we last opend it
+        if(bibtexAdapter != null)
+        {
+            SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
+            long lastModifyDate = globalSettings.getLong("libraryFileLastModifyDate", 0);
+            if(libraryPathString != null)
+            {
+                Uri libraryUri = Uri.parse(libraryPathString);
+                if(libraryUri != null)
+                {
+                    File libraryFile = new File(Uri.decode(libraryUri.getEncodedPath()));
+                    if(libraryFile != null)
+                    {
+                        SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
+                        globalSettingsEditor.putLong("libraryFileLastModifyDate", libraryFile.lastModified());
+                        if(libraryFile.lastModified() != lastModifyDate)
+                            bibtexAdapter = null;
+                    }
+                }
+            }
+        }
+        
         if(PrepareBibtexAdapterTask != null)
             PrepareBibtexAdapterTask.cancel(true);
         
