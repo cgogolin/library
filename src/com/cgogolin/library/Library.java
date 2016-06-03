@@ -459,6 +459,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                     {
                         SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
                         globalSettingsEditor.putLong("libraryFileLastModifyDate", libraryFile.lastModified());
+                        globalSettingsEditor.apply();
                         if(libraryFile.lastModified() != lastModifyDate)
                             bibtexAdapter = null;
                     }
