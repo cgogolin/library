@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Library</string>
+    <string name="app_label">Library</string>
+    <string name="menu_set_library_path">BibTeX ファイルのパスを設定</string>
+    <string name="menu_set_path_conversion">パス変換のセットアップ</string>
+    <string name="menu_search">フィルター</string>
+    <string name="search_hint">BibTeX ライブラリーのフィルター</string>
+    <string name="menu_set_path_conversion_help">pdf や djvu ファイルなどの BibTeX エントリーと関連付けられたローカルファイルを開くとき、BibTeX エントリ―の \'ファイル\' フィールドに指定されたパスは次のように更新されます: 対象文字列は置き換え文字列で置き換えられ、結果に接頭語文字列が付加されます。</string>
+    <string name="save">保存</string>
+    <string name="open">開く</string>
+    <string name="cancel">キャンセル</string>
+    <string name="target">対象</string>
+    <string name="replacement">置き換え</string>
+    <string name="prefix">接頭語</string>
+    <string name="file">ファイル</string>
+    <string name="url">url</string>
+    <string name="doi">doi</string>
+    <string name="share">共有...</string>
+    <string name="no_application_to_view_files_of_type">この種類のファイルを表示するアプリケーションがありません</string>
+    <string name="couldnt_find_file">ファイルが見つかりません</string>
+    <string name="path_conversion_hint">パス変換が正しくセットアップされていますか?</string>
+    <string name="error_opening_webbrowser">Webブラウザーを開くときにエラー。</string>
+    <string name="error_starting_share_intent">共有時にエラー。</string>
+    <string name="please_enter_path_of_bibtex_library">BibTeX ライブラリーファイルのパスまたは URL を指定してください。</string>
+    <string name="adapter_not_initialized">アダプターが初期化されていません。</string>
+    <string name="adapter_failed_to_intialized">BibTeX ライブラリーファイルが読めません。 指定されたパスまたは URL が正しくないか、SD カードがまだ読み取り可能ではありませんか?</string>
+    <string name="io_exception_while_reading">読み取り時に IO 例外</string>
+    <string name="io_exception_while_closing">ストリームを閉じるときに IO 例外</string>
+    <string name="files">ファイル</string>
+    <string name="arxiv_url_prefix">http://arxiv.org/abs/</string>
+    <string name="doi_url_prefix">http://dx.doi.org/</string>
+    <string name="edited_by">編集</string>
+    <string name="vol">版</string>
+    <string name="num">no.</string>
+    <string name="page">頁</string>
+    <string name="menu_sort">並び替え</string>
+    <string name="menu_sort_by_none">ライブラリー内の順に並び替え</string>
+    <string name="menu_sort_by_date">日付順に並び替え</string>
+    <string name="menu_sort_by_author">作者順に並び替え</string>
+    <string name="menu_sort_by_journal">雑誌順に並べ替え</string>
+    <string name="no_matches">一致しません</string>
+    <string name="pick_bibtex_library">BibTeX ファイルを選択</string>
+    <string name="exception_while_loading_library">BibTeX ライブラリーファイルの読み込み中に例外: </string>
+</resources>
