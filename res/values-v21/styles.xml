@@ -6,5 +6,6 @@
   </style>
   <style name="LibraryActionBarStyle" parent="@android:style/Widget.Material.ActionBar">
     <item name="android:colorAccent">@color/accent</item>
+    <item name="android:background">@color/toolbar</item>
   </style>
 </resources>
