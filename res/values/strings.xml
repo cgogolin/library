@@ -42,4 +42,7 @@
     <string name="no_matches">No matches</string>
     <string name="pick_bibtex_library">Pick BibTeX file</string>
     <string name="exception_while_loading_library">Exception while loading the BibTeX library file: </string>
+    <string name="dialog_newpermissions_ok">Close</string>
+    <string name="dialog_newpermissions_title">Restart required</string>
+    <string name="dialog_newpermissions_message">Due to a bug in some versions of Android the app must be closed and restarted to actually obtain the permissions that were just granted.</string>
 </resources>

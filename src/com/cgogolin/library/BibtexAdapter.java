@@ -13,10 +13,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.BufferedReader;
+import java.io.OutputStream;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
+import android.content.pm.ResolveInfo;
+import android.content.pm.PackageManager;
 
 import android.net.Uri;
 
@@ -57,7 +60,7 @@ public class BibtexAdapter extends BaseAdapter {
     private ArrayList<BibtexEntry> bibtexEntryList;
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
     private String filter = null;
-
+    
     SortMode sortedAccordingTo = SortMode.None;
     String filteredAccodingTo = "";
     SortMode sortingAccordingTo = null;
@@ -67,7 +70,7 @@ public class BibtexAdapter extends BaseAdapter {
     AsyncTask<BibtexAdapter.SortMode,Void,Void> sortTask;
     
     public BibtexAdapter(InputStream inputStream) throws java.io.IOException
-    {
+    {   
         bibtexEntryList = BibtexParser.parse(inputStream);
         
             //Copy all entries to the filtered list
@@ -325,11 +328,15 @@ public class BibtexAdapter extends BaseAdapter {
         return position;
     }    
 
-        //Can be overridento modify the path for opening files
+        //Must be overwritten to create a Uri suitable for the respective Android version 
+    Uri getUriForActionViewIntent(String path) {
+        return Uri.parse("file://"+path);
+    }
+
+        //Can be overriden to modify the path for opening files
     String getModifiedPath(String path) {
         return path;
     };
-    
 
     private void makeExtraInfoVisible(final int position, View v, final Context context, boolean animate) {
         final LinearLayout extraInfo = (LinearLayout)v.findViewById(R.id.LinearLayout02);
@@ -357,32 +364,78 @@ public class BibtexAdapter extends BaseAdapter {
                         @Override
                         public void onClick(View v)
                             {
-                                Uri uri = Uri.parse("file://"+path); // Some PDF viewers seem to need this to open the file properly
-                                if( uri != null && (new File(uri.getPath())).isFile() ) 
-                                {
-                                        //Determine mime type
-                                    MimeTypeMap map = MimeTypeMap.getSingleton();
-                                    String extension ="";
-                                    if (path.lastIndexOf(".") != -1) extension = path.substring((path.lastIndexOf(".") + 1), path.length());
-                                                        
-                                    String type = map.getMimeTypeFromExtension(extension);
-                                                        
-                                        //Start application to open the file
-                                    Intent intent = new Intent(Intent.ACTION_VIEW);
-                                    intent.setDataAndType(uri, type);
-//                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                    try 
+                                Uri uri = getUriForActionViewIntent(path);
+                                if (android.os.Build.VERSION.SDK_INT < 23) {
+                                    Uri fileUri = Uri.parse("file://"+path);
+                                    File file = new File(fileUri.getPath());
+                                    if( fileUri == null || !file.isFile() )
                                     {
-                                        context.startActivity(intent);
-                                    }
-                                    catch (ActivityNotFoundException e) 
-                                    {
-                                        Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+path+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();
+                                        return;
                                     }
                                 }
                                 else
                                 {
-                                    Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+path+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();    
+                                    OutputStream os = null;
+                                    Log.i(context.getString(R.string.app_name), "checking if we can somehow open an output stream to uri");
+                                    try{
+                                        os = context.getContentResolver().openOutputStream(uri, "wa");
+                                        if(os != null)
+                                        {
+                                            Log.i(context.getString(R.string.app_name), "opened os succesfully");
+                                            os.close();
+                                            Log.i(context.getString(R.string.app_name), "output stream successfully opened and closed");
+                                        }
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        Log.i(context.getString(R.string.app_name), "exception while opening os: "+e);
+                                        if(os != null)
+                                            try
+                                            {
+                                                os.close();
+                                            }
+                                            catch(Exception e2)
+                                            {
+                                                os = null;
+                                            }
+                                    }                                    
+                                }
+                                
+                                
+                                    //Determine mime type
+                                MimeTypeMap map = MimeTypeMap.getSingleton();
+                                String extension ="";
+                                if (path.lastIndexOf(".") != -1) extension = path.substring((path.lastIndexOf(".") + 1), path.length());
+                                
+                                String type = map.getMimeTypeFromExtension(extension);
+                                
+                                    //Start application to open the file
+                                Intent intent = new Intent(Intent.ACTION_VIEW);
+                                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                                intent.setDataAndType(uri, type);
+//                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                                // if(android.support.v4.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
+                                //     Log.i(context.getString(R.string.app_name), "we don't have write permissions");
+                                // else
+                                //     Log.i(context.getString(R.string.app_name), "we do have write permissions");                                    
+                                
+                                try 
+                                {
+                                    context.startActivity(intent);
+                                    if(android.os.Build.VERSION.SDK_INT >= 23){
+                                            //Taken from http://stackoverflow.com/questions/18249007/how-to-use-support-fileprovider-for-sharing-content-to-other-apps
+                                        List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                                        for (ResolveInfo resolveInfo : resInfoList) {
+                                            String packageName = resolveInfo.activityInfo.packageName;
+                                            context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                                        }
+                                    }
+                                }
+                                catch (ActivityNotFoundException e) 
+                                {
+                                    Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
                                 }
                             }
                     });

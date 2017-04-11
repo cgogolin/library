@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import android.util.Log;
 
+import android.app.Activity;
+
 import android.os.Bundle;
 
 import android.content.Context;
@@ -15,12 +17,21 @@ import android.content.SharedPreferences;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ActivityNotFoundException;
+import android.content.pm.PackageManager;
+
+import android.Manifest.permission;
 
 import android.app.Activity;
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.SearchManager;
+
+import android.support.v4.content.FileProvider;
+import android.support.v4.provider.DocumentFile;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -49,18 +60,37 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.PopupMenu;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.SearchView;
 import android.webkit.MimeTypeMap;
 
 import android.net.Uri;
 
 import android.os.AsyncTask;
 
-public class Library extends Activity implements SearchView.OnQueryTextListener
+public class Library extends AppCompatActivity implements SearchView.OnQueryTextListener
 {
     class LibraryBibtexAdapter extends BibtexAdapter {
-        public LibraryBibtexAdapter(InputStream inputStream) throws java.io.IOException {
+
+        private Context context;
+        
+        public LibraryBibtexAdapter(Context context, InputStream inputStream) throws java.io.IOException {
             super(inputStream);
+            this.context = context;
+        }
+        @Override
+        Uri getUriForActionViewIntent(String path) {
+            
+            if (android.os.Build.VERSION.SDK_INT < 23) {
+                return Uri.parse("file://"+path);
+            }
+            else {
+                    //New versions of Android want files to be shared through a provider and not via a file:// uri
+                String providerUriString = Uri.decode(libraryFolderRoot.toString());
+                providerUriString = providerUriString.substring(0, providerUriString.length()-1)+"/";
+                providerUriString+=path;
+                Log.i(getString(R.string.app_name), "providerUriString="+providerUriString);
+                return Uri.parse(providerUriString);
+                    //return android.support.v4.content.FileProvider.getUriForFile(context, "com.cgogolin.library.fileprovider", file);
+            }
         }
         @Override
         String getModifiedPath(String path) {
@@ -89,11 +119,14 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     
     public static final String GLOBAL_SETTINGS = "global settings";
     public static final int LIBRARY_FILE_PICK_REQUEST = 0;
+    public static final int WRITE_PERMISSION_REQUEST = 1;
+    public static final int OPEN_DOCUMENT_TREE_REQUEST = 2;
     
     private boolean libraryWasPreviouslyInitializedCorrectly = false;
     private String libraryPathString = "/mnt/sdcard/";
     private String pathTargetString = "home/username";
     private String pathReplacementString = "/mnt/sdcard";
+    private Uri libraryFolderRoot = null;
     private String pathPrefixString = "";
 
     private AsyncTask<String, Void, Void> PrepareBibtexAdapterTask = null;
@@ -105,7 +138,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     private ListView bibtexListView = null;
     private LibraryBibtexAdapter bibtexAdapter = null;
     private ProgressBar progressBar  = null;
-    private SearchView searchView = null;
+    private android.support.v7.widget.SearchView searchView = null;
     private AlertDialog setLibraryPathDialog = null;
     private AlertDialog setTargetAndReplacementStringsDialog = null;
     
@@ -118,7 +151,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
             // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
         MenuItem searchMenuItem = menu.findItem(R.id.menu_search);
-        searchView = (SearchView) searchMenuItem.getActionView();
+        searchView = (android.support.v7.widget.SearchView)MenuItemCompat.getActionView(searchMenuItem);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 //        searchView.setIconifiedByDefault(true);
         searchView.setIconified(false);
@@ -239,7 +272,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     {
         super.onCreate(savedInstanceState);
 
-        ActionBar actionBar = getActionBar();
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
         actionBar.setTitle("");
         actionBar.setIcon(null);
         actionBar.setDisplayShowTitleEnabled(false);
@@ -258,7 +291,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     protected void onResume()
     {   
         super.onResume();
-
+        
         prepareBibtexListView();
         prepareBibtexAdapter();
     }
@@ -278,6 +311,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         globalSettingsEditor.putString("pathReplacementString", pathReplacementString);
         globalSettingsEditor.putString("pathPrefixString", pathPrefixString);
         globalSettingsEditor.putString("sortMode", sortMode.toString());
+        globalSettingsEditor.putString("bibtexFolderRootUri", libraryFolderRoot != null ? libraryFolderRoot.toString() : "");
         globalSettingsEditor.commit();
     }
 
@@ -293,6 +327,17 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
     {
         if(setLibraryPathDialog != null && setLibraryPathDialog.isShowing())
             return;
+
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        startActivityForResult(intent, OPEN_DOCUMENT_TREE_REQUEST);
+        
+        if (android.os.Build.VERSION.SDK_INT >= 23 && (android.support.v4.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || android.support.v4.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) )
+        {
+            requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, WRITE_PERMISSION_REQUEST);
+            return; //onResume() is then called again from onRequestPermissionsResult()
+        }
+        
         
         final LinearLayout editTextLayout = new LinearLayout(context);
         editTextLayout.setLayoutParams(new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
@@ -433,6 +478,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         pathReplacementString = globalSettings.getString("pathReplacementString", pathReplacementString);
         pathPrefixString = globalSettings.getString("pathPrefixString", pathPrefixString);
         sortMode = BibtexAdapter.SortMode.valueOf(globalSettings.getString("sortMode", "None"));
+        libraryFolderRoot = Uri.parse(globalSettings.getString("bibtexFolderRootUri", libraryFolderRoot != null ? libraryFolderRoot.toString() : ""));
     }
 
     
@@ -497,7 +543,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                             inputStream = context.getContentResolver().openInputStream(libraryUri);
                         }
                         
-                        bibtexAdapter = new LibraryBibtexAdapter(inputStream);
+                        bibtexAdapter = new LibraryBibtexAdapter(context, inputStream);
                     }
                     catch(Exception e)
                     {
@@ -595,6 +641,17 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
                         prepareBibtexAdapter();
                     }
                 }
+            case OPEN_DOCUMENT_TREE_REQUEST:
+                if(resultCode==Activity.RESULT_OK) 
+                {
+                    Uri treeUri=intent.getData();
+                    DocumentFile pickedDir=DocumentFile.fromTreeUri(this, treeUri);
+                    Log.i(getString(R.string.app_name), "OPEN_DOCUMENT_TREE_REQUEST succesfull for "+treeUri.toString());
+                        
+                    grantUriPermission(getPackageName(), treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);//Not sure this is necessary
+                    getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION );
+                    setLibraryFolderRoot(treeUri);
+                }
         }
     }
 
@@ -604,5 +661,55 @@ public class Library extends Activity implements SearchView.OnQueryTextListener
         globalSettingsEditor.putString("bibtexUrlString", newLibraryPathString);
         globalSettingsEditor.commit();
         libraryPathString = newLibraryPathString;
+    }
+
+
+    void setLibraryFolderRoot(Uri newLibraryFolderRoot) {
+        SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
+        SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
+        globalSettingsEditor.putString("bibtexFolderRootUri", newLibraryFolderRoot.toString());
+        globalSettingsEditor.commit();
+        libraryFolderRoot = newLibraryFolderRoot;
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == WRITE_PERMISSION_REQUEST) {
+                /*We just resume irrespective of whether the permission was
+                 * granted and then handle cases where we can not access a
+                 * file on a per case basis.
+                 * Addendum: We should be able to simply resume here, but
+                 * due to a bug in Android we have to kill the current process
+                 * because we only actually get the permission after the app
+                 * is restarted from scratch.
+                 * */
+            //onResume();
+            Boolean anyResultPositive = false;
+            for (int result : grantResults)
+                if(result ==  android.content.pm.PackageManager.PERMISSION_GRANTED ) {
+                    anyResultPositive = true;
+                    break;
+                }
+            
+            if(anyResultPositive) 
+            {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+                AlertDialog alert = alertDialogBuilder.create();
+                alert.setTitle(R.string.dialog_newpermissions_title);
+                alert.setMessage(getResources().getString(R.string.dialog_newpermissions_message));
+                alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dialog_newpermissions_ok),
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                    }
+                                });
+                alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        public void onDismiss(DialogInterface dialog) {
+                            android.os.Process.killProcess(android.os.Process.myPid());
+                        }
+                    });
+                alert.show();
+            }
+        }
     }
 }

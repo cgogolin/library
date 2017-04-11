@@ -4,7 +4,8 @@
 	  android:versionCode="27"
 	  android:versionName="4.4">
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  <uses-sdk android:minSdkVersion="11" android:targetSdkVersion="11" />
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-sdk android:minSdkVersion="11" android:targetSdkVersion="23" />
   <supports-screens
       android:smallScreens="true"
       android:normalScreens="true"
@@ -29,6 +30,15 @@
 		       android:resource="@xml/searchable"
 		      />
         </activity>
+	<provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.cgogolin.library.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
 	<meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
     </application>
 </manifest>
