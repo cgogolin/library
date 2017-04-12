@@ -84,12 +84,34 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             }
             else {
                     //New versions of Android want files to be shared through a provider and not via a file:// uri
-                String providerUriString = Uri.decode(libraryFolderRoot.toString());
-                providerUriString = providerUriString.substring(0, providerUriString.length()-1)+"/";
-                providerUriString+=path;
-                Log.i(getString(R.string.app_name), "providerUriString="+providerUriString);
-                return Uri.parse(providerUriString);
-                    //return android.support.v4.content.FileProvider.getUriForFile(context, "com.cgogolin.library.fileprovider", file);
+                // String providerUriString = Uri.decode(libraryFolderRoot.toString());
+                // providerUriString = providerUriString.substring(0, providerUriString.length()-1)+"/";
+                // providerUriString+=path;
+                // Log.i(getString(R.string.app_name), "providerUriString="+providerUriString);
+                // return Uri.parse(providerUriString);
+                DocumentFile libraryFolderRootDir = DocumentFile.fromTreeUri(context, libraryFolderRoot);
+                DocumentFile currentDir = libraryFolderRootDir;
+                DocumentFile file = null;
+                for (String pathSegment : path.split("/"))
+                {
+                    
+                    file = currentDir.findFile(pathSegment);
+                    if(file != null)
+                        currentDir = file;
+                    if (file == null)
+                        Log.i(getString(R.string.app_name), "The segment "+pathSegment+" was not among the children of the current directory");
+                }
+                if (file != null)
+                {
+                    Log.i(getString(R.string.app_name), "File has uri "+file.getUri().toString());
+                    return file.getUri();
+                }
+                // {
+                //         //return file.getUri();
+                //     return android.support.v4.content.FileProvider.getUriForFile(context, "com.cgogolin.library.fileprovider", (file.getUri()));
+                // }
+                else
+                    return Uri.parse("file://"+path);
             }
         }
         @Override
@@ -645,7 +667,6 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 if(resultCode==Activity.RESULT_OK) 
                 {
                     Uri treeUri=intent.getData();
-                    DocumentFile pickedDir=DocumentFile.fromTreeUri(this, treeUri);
                     Log.i(getString(R.string.app_name), "OPEN_DOCUMENT_TREE_REQUEST succesfull for "+treeUri.toString());
                         
                     grantUriPermission(getPackageName(), treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);//Not sure this is necessary
