@@ -51,5 +51,10 @@
     <string name="dialog_set_library_root_message_addition_on_upgrade">Library now uses a new method to locate and open files.</string>
     <string name="dialog_set_library_root_select">Select</string>
     <string name="dialog_analyse_library_root_title">Please wait</string>
+    <string name="dialog_analyse_library_root_title_failed">File not found</string>
+    <string name="dialog_analyse_library_root_title_success">Success</string> 
     <string name="dialog_analyse_library_root_message">Trying to find the requested file in the directory you picked. This might take a while because Android\'s DocumentFile.findFile() can be very slow...</string>
+    <string name="dialog_analyse_library_root_message_success" formatted="false">Library found the file %s in %s under the uri %s.</string>
+    <string name="dialog_analyse_library_root_message_failed" formatted="false">Library could not find the file %s inside the selected directory %s. Sorry.</string>
+    <string name="report_bug">Report bug</string>
 </resources>

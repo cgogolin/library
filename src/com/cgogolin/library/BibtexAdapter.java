@@ -370,34 +370,8 @@ public class BibtexAdapter extends BaseAdapter {
                                 }
                                 
                                 checkCanWriteToUri(context, uri);
-                                
-                                    //Determine mime type
-                                MimeTypeMap map = MimeTypeMap.getSingleton();
-                                String extension ="";
-                                if (path.lastIndexOf(".") != -1) extension = path.substring((path.lastIndexOf(".") + 1), path.length());
-                                
-                                String type = map.getMimeTypeFromExtension(extension);
-                                
-                                    //Start application to open the file and grant permissions
-                                Intent intent = new Intent(Intent.ACTION_VIEW);
-                                intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                                intent.setDataAndType(uri, type);
-                                try 
-                                {
-                                    context.startActivity(intent);
-                                    if(android.os.Build.VERSION.SDK_INT >= 23){
-                                            //Taken from http://stackoverflow.com/questions/18249007/how-to-use-support-fileprovider-for-sharing-content-to-other-apps
-                                        List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
-                                        for (ResolveInfo resolveInfo : resInfoList) {
-                                            String packageName = resolveInfo.activityInfo.packageName;
-                                            context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                                        }
-                                    }
-                                }
-                                catch (ActivityNotFoundException e) 
-                                {
-                                    Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
-                                }
+
+                                openExternally(context, uri);
                             }
                     });
                 extraInfo.addView(button);
@@ -591,5 +565,37 @@ public class BibtexAdapter extends BaseAdapter {
                 }
         }
     }
+
+    public void openExternally(Context context, Uri uri)
+        {
+                //Determine mime type
+            MimeTypeMap map = MimeTypeMap.getSingleton();
+            String extension ="";
+            String uriString = uri.toString();
+            if (uriString.lastIndexOf(".") != -1) extension = uriString.substring((uriString.lastIndexOf(".") + 1), uriString.length());
+            
+            String type = map.getMimeTypeFromExtension(extension);
+            
+                //Start application to open the file and grant permissions
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            intent.setDataAndType(uri, type);
+            try 
+            {
+                context.startActivity(intent);
+                if(android.os.Build.VERSION.SDK_INT >= 23){
+                        //Taken from http://stackoverflow.com/questions/18249007/how-to-use-support-fileprovider-for-sharing-content-to-other-apps
+                    List<ResolveInfo> resInfoList = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+                    for (ResolveInfo resolveInfo : resInfoList) {
+                        String packageName = resolveInfo.activityInfo.packageName;
+                        context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                    }
+                }
+            }
+            catch (ActivityNotFoundException e) 
+            {
+                Toast.makeText(context, context.getString(R.string.no_application_to_view_files_of_type)+" "+type+".",Toast.LENGTH_SHORT).show();
+            }
+        }
 }
 

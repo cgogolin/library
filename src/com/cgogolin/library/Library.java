@@ -224,6 +224,12 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         }
         if(SelectedSortMenuItem!=null)
             SelectedSortMenuItem.setChecked(true);
+
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            MenuItem pathConversionMenuItem = menu.findItem(R.id.menu_set_path_conversion);
+            if(pathConversionMenuItem != null) 
+                pathConversionMenuItem.setVisible(false);
+        }
         
         return true;
     }
@@ -352,7 +358,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         globalSettingsEditor.putString("uriReplacementString", uriReplacementString);
         globalSettingsEditor.putString("uriPrefixString", uriPrefixString);
         globalSettingsEditor.putString("sortMode", sortMode.toString());
-        globalSettingsEditor.putString("bibtexFolderRootUri", libraryFolderRootUri != null ? libraryFolderRootUri.toString() : "");
+        globalSettingsEditor.putString("bibtexFolderRootUri", libraryFolderRootUri != null ? libraryFolderRootUri.toString() : "null");
         globalSettingsEditor.commit();
     }
 
@@ -388,6 +394,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     @Override
                     public void onClick(View v)
                         {
+                            if (android.os.Build.VERSION.SDK_INT >= 23)
+                                setLibraryFolderRootUri(null);
+                            
                             Intent openDocumentIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                             openDocumentIntent.addCategory(Intent.CATEGORY_OPENABLE);
                             openDocumentIntent.setType("*/*");
@@ -406,6 +415,8 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     @Override
                     public void onClick(DialogInterface dialog, int whichButton) 
                         {
+                            if (android.os.Build.VERSION.SDK_INT >= 23)
+                                setLibraryFolderRootUri(null);
                             setLibraryPathDialog = null;
                             setLibraryPath(input.getText().toString().trim());
                             bibtexAdapter = null;
@@ -562,50 +573,53 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                         file = currentDir.findFile(pathSegment);
                         if(file != null)
                         {
-                            Log.i(getString(R.string.app_name), "found "+pathSegment);
+                                //Log.i(getString(R.string.app_name), "found "+pathSegment);
                             currentDir = file;
                             relativePath = relativePath+"/"+pathSegment;
                         }
                         else
                         {
-                            Log.i(getString(R.string.app_name), "couldn't find "+pathSegment+" in "+currentDir.getUri().toString());
+                                //Log.i(getString(R.string.app_name), "couldn't find "+pathSegment+" in "+currentDir.getUri().toString());
                             relativePath = "";
                         }
                     }
-                    String fileUriString = file != null ? file.getUri().toString() : "file was null!";
-                    uriTargetString = path.substring(0,path.lastIndexOf(relativePath));
-                    uriReplacementString = "";
-//                    uriPrefixString = (uriTargetString.equals("") ? Uri.decode(fileUriString) : Uri.decode(fileUriString).replace(relativePath, ""));
-                    uriPrefixString = (uriTargetString.equals("") ? fileUriString : fileUriString.replace(Uri.encode(relativePath), ""));
-                    Log.i(getString(R.string.app_name), "path="+path);
-                    Log.i(getString(R.string.app_name), "relativePath="+relativePath);
-                    Log.i(getString(R.string.app_name), "fileUriString="+fileUriString);
-                    Log.i(getString(R.string.app_name), "libraryFolderRootUri="+treeUri.toString());
-                    Log.i(getString(R.string.app_name), "from this we guess:");
-                    Log.i(getString(R.string.app_name), "uriTargetString="+uriTargetString);
-                    Log.i(getString(R.string.app_name), "uriReplacementString="+uriReplacementString);
-                    Log.i(getString(R.string.app_name), "uriPrefixString="+uriPrefixString);
-                    Log.i(getString(R.string.app_name), "getUriInLibraryFolder(path).toString()="+Uri.decode(getUriInLibraryFolder(path).toString()));
-                    Log.i(getString(R.string.app_name), "compared to                            "+Uri.decode(fileUriString));
-                    Log.i(getString(R.string.app_name), "and                                    "+Uri.decode(file.getUri().toString()));
+                    if(file != null) 
+                    {
+                        String fileUriString = file.getUri().toString();
+                        uriTargetString = path.substring(0,path.lastIndexOf(relativePath));
+                        uriReplacementString = "";
+                        uriPrefixString = (uriTargetString.equals("") ? fileUriString : fileUriString.replace(Uri.encode(relativePath), ""));
+                        return true;
+                    }
+                    else
+                        return false;
+                    // Log.i(getString(R.string.app_name), "path="+path);
+                    // Log.i(getString(R.string.app_name), "relativePath="+relativePath);
+                    // Log.i(getString(R.string.app_name), "fileUriString="+fileUriString);
+                    // Log.i(getString(R.string.app_name), "libraryFolderRootUri="+treeUri.toString());
+                    // Log.i(getString(R.string.app_name), "from this we guess:");
+                    // Log.i(getString(R.string.app_name), "uriTargetString="+uriTargetString);
+                    // Log.i(getString(R.string.app_name), "uriReplacementString="+uriReplacementString);
+                    // Log.i(getString(R.string.app_name), "uriPrefixString="+uriPrefixString);
+                    // Log.i(getString(R.string.app_name), "getUriInLibraryFolder(path).toString()="+Uri.decode(getUriInLibraryFolder(path).toString()));
+                    // Log.i(getString(R.string.app_name), "compared to                            "+Uri.decode(fileUriString));
+                    // Log.i(getString(R.string.app_name), "and                                    "+Uri.decode(file.getUri().toString()));
 
-                    Uri uri1 = file.getUri();
-                    Uri uri2 = getUriInLibraryFolder(path);
-                    Uri uri3 = Uri.parse(uri1.toString());
+                    // Uri uri1 = file.getUri();
+                    // Uri uri2 = getUriInLibraryFolder(path);
+                    // Uri uri3 = Uri.parse(uri1.toString());
                     
-                    Log.i(getString(R.string.app_name), "uri1.equals(uri2)="+uri1.equals(uri2));
-                    Log.i(getString(R.string.app_name), "uri1.compareTo(uri2)="+uri1.compareTo(uri2));
+                    // Log.i(getString(R.string.app_name), "uri1.equals(uri2)="+uri1.equals(uri2));
+                    // Log.i(getString(R.string.app_name), "uri1.compareTo(uri2)="+uri1.compareTo(uri2));
                     
-                    Log.i(getString(R.string.app_name), "uri1="+uri1.toString());
-                    bibtexAdapter.checkCanWriteToUri(context, uri1);
+                    // Log.i(getString(R.string.app_name), "uri1="+uri1.toString());
+                    // bibtexAdapter.checkCanWriteToUri(context, uri1);
                     
-                    Log.i(getString(R.string.app_name), "uri2="+uri2.toString());
-                    bibtexAdapter.checkCanWriteToUri(context, uri2);
+                    // Log.i(getString(R.string.app_name), "uri2="+uri2.toString());
+                    // bibtexAdapter.checkCanWriteToUri(context, uri2);
 
-                    Log.i(getString(R.string.app_name), "uri3="+uri3.toString());
-                    bibtexAdapter.checkCanWriteToUri(context, uri3);
-
-                    
+                    // Log.i(getString(R.string.app_name), "uri3="+uri3.toString());
+                    // bibtexAdapter.checkCanWriteToUri(context, uri3);                    
                     
                     // Log.i(getString(R.string.app_name), "checking if we can write to uri from file");
                     // bibtexAdapter.checkCanWriteToUri(context, file.getUri());
@@ -616,15 +630,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     // bibtexAdapter.checkCanWriteToUri(context, Uri.parse(file.getUri().toString()));
                     // Log.i(getString(R.string.app_name), "checking if we can write to uri from getUriInLibraryFolder(path) after converting to string and back");
                     // bibtexAdapter.checkCanWriteToUri(context, Uri.parse(getUriInLibraryFolder(path).toString()));
-                    
-                    
-                    if(file != null)
-                        Log.i(getString(R.string.app_name), "file is not null, reporting success");
-                    return file != null;
                 }
                 @Override
                 protected void onPostExecute(Boolean succees) {
-                    pathOfFileTrigeredSetLibraryFolderRootDialog = null;
                     if(succees)
                     {
                         setLibraryFolderRootUri(treeUri);
@@ -633,14 +641,35 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                         globalSettingsEditor.putString("uriTargetString", uriTargetString);
                         globalSettingsEditor.putString("uriReplacementString", uriReplacementString);
                         globalSettingsEditor.putString("uriPrefixString", uriPrefixString);
+                        if(analysingLibraryFolderRootDialog != null)
+                        {
+                                //analysingLibraryFolderRootDialog.cancel();
+                            analysingLibraryFolderRootDialog.setMessage(String.format(getString(R.string.dialog_analyse_library_root_message_success), pathOfFileTrigeredSetLibraryFolderRootDialog, libraryFolderRootUri.toString(), getUriInLibraryFolder(pathOfFileTrigeredSetLibraryFolderRootDialog).toString() ));
+                            analysingLibraryFolderRootDialog.setTitle(getString(R.string.dialog_analyse_library_root_title_success));
+                            analysingLibraryFolderRootDialog.setButton( android.content.DialogInterface.BUTTON_NEGATIVE, getString(R.string.open), new DialogInterface.OnClickListener() 
+                                {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int whichButton)
+                                        {
+                                            if(bibtexAdapter != null)
+                                                bibtexAdapter.openExternally(context, getUriInLibraryFolder(pathOfFileTrigeredSetLibraryFolderRootDialog));
+                                        }
+                                });
+                            analysingLibraryFolderRootDialog = null;
+                        }
                     }
                     else
-                        setLibraryFolderRootUri(null);
-                    if(analysingLibraryFolderRootDialog != null)
                     {
-                        analysingLibraryFolderRootDialog.cancel();
-                        analysingLibraryFolderRootDialog = null;
+                        setLibraryFolderRootUri(null);
+                        if(analysingLibraryFolderRootDialog != null)
+                        {
+                                //analysingLibraryFolderRootDialog.cancel();
+                            analysingLibraryFolderRootDialog.setMessage(String.format(getString(R.string.dialog_analyse_library_root_message_failed), pathOfFileTrigeredSetLibraryFolderRootDialog, treeUri.toString()));
+                            analysingLibraryFolderRootDialog.setTitle(getString(R.string.dialog_analyse_library_root_title_failed));
+                            analysingLibraryFolderRootDialog = null;
+                        }
                     }
+                    pathOfFileTrigeredSetLibraryFolderRootDialog = null;
                 }
                 // @Override
                 // protected void onPostExecute(Boolean succees) {
@@ -701,7 +730,11 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         uriReplacementString = globalSettings.getString("uriReplacementString", uriReplacementString);
         uriPrefixString = globalSettings.getString("uriPrefixString", uriPrefixString);
         sortMode = BibtexAdapter.SortMode.valueOf(globalSettings.getString("sortMode", "None"));
-        libraryFolderRootUri = Uri.parse(globalSettings.getString("bibtexFolderRootUri", libraryFolderRootUri != null ? libraryFolderRootUri.toString() : ""));
+        String libraryFolderRootUriString = globalSettings.getString("bibtexFolderRootUri", libraryFolderRootUri != null ? libraryFolderRootUri.toString() : "");
+        if(libraryFolderRootUriString == null || libraryFolderRootUriString.equals("null"))
+            libraryFolderRootUri = null;
+        else
+            libraryFolderRootUri = Uri.parse(libraryFolderRootUriString);
     }
 
     
@@ -892,7 +925,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     void setLibraryFolderRootUri(Uri newLibraryFolderRootUri) {
         SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
         SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
-        globalSettingsEditor.putString("bibtexFolderRootUri", newLibraryFolderRootUri.toString());
+        globalSettingsEditor.putString("bibtexFolderRootUri", newLibraryFolderRootUri != null ? newLibraryFolderRootUri.toString() : "null" );
         globalSettingsEditor.commit();
         libraryFolderRootUri = newLibraryFolderRootUri;
     }
