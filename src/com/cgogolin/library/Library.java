@@ -635,6 +635,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 protected void onPostExecute(Boolean succees) {
                     if(succees)
                     {
+                        final String path = pathOfFileTrigeredSetLibraryFolderRootDialog;
                         setLibraryFolderRootUri(treeUri);
                         SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
                         SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
@@ -646,13 +647,14 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                                 //analysingLibraryFolderRootDialog.cancel();
                             analysingLibraryFolderRootDialog.setMessage(String.format(getString(R.string.dialog_analyse_library_root_message_success), pathOfFileTrigeredSetLibraryFolderRootDialog, libraryFolderRootUri.toString(), getUriInLibraryFolder(pathOfFileTrigeredSetLibraryFolderRootDialog).toString() ));
                             analysingLibraryFolderRootDialog.setTitle(getString(R.string.dialog_analyse_library_root_title_success));
+                            analysingLibraryFolderRootDialog.getButton( android.content.DialogInterface.BUTTON_NEGATIVE).setText(R.string.open);
                             analysingLibraryFolderRootDialog.setButton( android.content.DialogInterface.BUTTON_NEGATIVE, getString(R.string.open), new DialogInterface.OnClickListener() 
                                 {
                                     @Override
                                     public void onClick(DialogInterface dialog, int whichButton)
                                         {
                                             if(bibtexAdapter != null)
-                                                bibtexAdapter.openExternally(context, getUriInLibraryFolder(pathOfFileTrigeredSetLibraryFolderRootDialog));
+                                                bibtexAdapter.openExternally(context, getUriInLibraryFolder(path));
                                         }
                                 });
                             analysingLibraryFolderRootDialog = null;

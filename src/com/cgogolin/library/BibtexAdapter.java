@@ -568,6 +568,9 @@ public class BibtexAdapter extends BaseAdapter {
 
     public void openExternally(Context context, Uri uri)
         {
+            if(uri == null | context == null)
+                return;
+            
                 //Determine mime type
             MimeTypeMap map = MimeTypeMap.getSingleton();
             String extension ="";
