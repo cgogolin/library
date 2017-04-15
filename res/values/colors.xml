@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <color name="accent">#CC0000</color>
-  <color name="toolbar">#FF000000</color>
+  <color name="primary">#FFCC0000</color>
+  <color name="primary_dark">#FF990000</color>
+  <color name="cursor">#FFFFFF</color>
 </resources>

@@ -365,43 +365,11 @@ public class BibtexAdapter extends BaseAdapter {
                         public void onClick(View v)
                             {
                                 Uri uri = getUriForActionViewIntent(path);
-                                if (android.os.Build.VERSION.SDK_INT < 23) {
-                                    Uri fileUri = Uri.parse("file://"+path);
-                                    File file = new File(fileUri.getPath());
-                                    if( fileUri == null || !file.isFile() )
-                                    {
-                                        Toast.makeText(context, context.getString(R.string.couldnt_find_file)+" "+path+".\n\n"+context.getString(R.string.path_conversion_hint),Toast.LENGTH_LONG).show();
-                                        return;
-                                    }
-                                }
-                                else
-                                {
-                                    OutputStream os = null;
-                                    Log.i(context.getString(R.string.app_name), "checking if we can somehow open an output stream to uri");
-                                    try{
-                                        os = context.getContentResolver().openOutputStream(uri, "wa");
-                                        if(os != null)
-                                        {
-                                            Log.i(context.getString(R.string.app_name), "opened os succesfully");
-                                            os.close();
-                                            Log.i(context.getString(R.string.app_name), "output stream successfully opened and closed");
-                                        }
-                                    }
-                                    catch(Exception e)
-                                    {
-                                        Log.i(context.getString(R.string.app_name), "exception while opening os: "+e);
-                                        if(os != null)
-                                            try
-                                            {
-                                                os.close();
-                                            }
-                                            catch(Exception e2)
-                                            {
-                                                os = null;
-                                            }
-                                    }                                    
+                                if(uri == null) {
+                                    return;
                                 }
                                 
+                                checkCanWriteToUri(context, uri);
                                 
                                     //Determine mime type
                                 MimeTypeMap map = MimeTypeMap.getSingleton();
@@ -410,17 +378,10 @@ public class BibtexAdapter extends BaseAdapter {
                                 
                                 String type = map.getMimeTypeFromExtension(extension);
                                 
-                                    //Start application to open the file
+                                    //Start application to open the file and grant permissions
                                 Intent intent = new Intent(Intent.ACTION_VIEW);
                                 intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                                 intent.setDataAndType(uri, type);
-//                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-                                // if(android.support.v4.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED)
-                                //     Log.i(context.getString(R.string.app_name), "we don't have write permissions");
-                                // else
-                                //     Log.i(context.getString(R.string.app_name), "we do have write permissions");                                    
-                                
                                 try 
                                 {
                                     context.startActivity(intent);
@@ -443,8 +404,7 @@ public class BibtexAdapter extends BaseAdapter {
             }
         }
 
-
-            //Read from the URLs list from the BibtexEntry
+            //Read the URLs list from the BibtexEntry
         List<String> associatedUrlList = entry.getUrls(context);
         if (associatedUrlList != null)
         {
@@ -603,6 +563,33 @@ public class BibtexAdapter extends BaseAdapter {
             extraInfo.setVisibility(View.GONE);
         }
     }
-    
+
+    public void checkCanWriteToUri(Context context, Uri uri)
+    {
+        OutputStream os = null;
+        Log.i(context.getString(R.string.app_name), "checking if we can somehow open an output stream to uri");
+        try{
+            os = context.getContentResolver().openOutputStream(uri, "wa");
+            if(os != null)
+            {
+                Log.i(context.getString(R.string.app_name), "opened os succesfully");
+                os.close();
+                Log.i(context.getString(R.string.app_name), "output stream successfully opened and closed");
+            }
+        }
+        catch(Exception e)
+        {
+            Log.i(context.getString(R.string.app_name), "exception while opening os: "+e);
+            if(os != null)
+                try
+                {
+                    os.close();
+                }
+                catch(Exception e2)
+                {
+                    os = null;
+                }
+        }
+    }
 }
 
