@@ -595,9 +595,9 @@ public class BibtexAdapter extends BaseAdapter {
                             String packageName = resolveInfo.activityInfo.packageName;
                             context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                         }
-                        catch(Exception e)
-                        {
-                        }
+                    }
+                    catch(Exception e)
+                    {
                     }
                 }
             }
