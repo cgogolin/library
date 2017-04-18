@@ -79,7 +79,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         @Override
         Uri getUriForActionViewIntent(String path) {
             
-            if (android.os.Build.VERSION.SDK_INT < 23) {
+            if (android.os.Build.VERSION.SDK_INT < 21) {
                 Uri uri = Uri.parse("file://"+path);
                 File file = null;
                 if (path != null && uri != null) {
@@ -100,15 +100,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 {
                     Log.i(getString(R.string.app_name), "got the following uri for this path:"+uri.toString()+" and libraryFolderRootUri="+libraryFolderRootUri);
                     DocumentFile file = DocumentFile.fromSingleUri(context, uri);
-                    // if(file == null || !file.exists() )
-                    // {
-                    //     Log.i(getString(R.string.app_name), "file is null or doesn't exist");
-                    //     libraryFolderRootUri = null;
-                    // }    
                 }
                 else
                 {
-                    Log.i(getString(R.string.app_name), "got a null uri for this path");
                     libraryFolderRootUri = null;
                 }
                 if(uri == null || libraryFolderRootUri == null) {
@@ -121,7 +115,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         }
         @Override
         String getModifiedPath(String path) {
-            if (android.os.Build.VERSION.SDK_INT < 23) 
+            if (android.os.Build.VERSION.SDK_INT < 21) 
                     //Some versions of Android suffer from this very stupid bug:
                     //http://stackoverflow.com/questions/16475317/android-bug-string-substring5-replace-empty-string
                 return pathPrefixString + (pathTargetString.equals("") ? path : path.replace(pathTargetString,pathReplacementString));
@@ -225,7 +219,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         if(SelectedSortMenuItem!=null)
             SelectedSortMenuItem.setChecked(true);
 
-        if (android.os.Build.VERSION.SDK_INT >= 23) {
+        if (android.os.Build.VERSION.SDK_INT >= 21) {
             MenuItem pathConversionMenuItem = menu.findItem(R.id.menu_set_path_conversion);
             if(pathConversionMenuItem != null) 
                 pathConversionMenuItem.setVisible(false);
@@ -394,7 +388,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     @Override
                     public void onClick(View v)
                         {
-                            if (android.os.Build.VERSION.SDK_INT >= 23)
+                            if (android.os.Build.VERSION.SDK_INT >= 21)
                                 setLibraryFolderRootUri(null);
                             
                             Intent openDocumentIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -415,7 +409,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     @Override
                     public void onClick(DialogInterface dialog, int whichButton) 
                         {
-                            if (android.os.Build.VERSION.SDK_INT >= 23)
+                            if (android.os.Build.VERSION.SDK_INT >= 21)
                                 setLibraryFolderRootUri(null);
                             setLibraryPathDialog = null;
                             setLibraryPath(input.getText().toString().trim());
@@ -898,7 +892,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                         bibtexAdapter = null;
                         prepareBibtexAdapter();
                     }
-                    if (android.os.Build.VERSION.SDK_INT >= 23 && (android.support.v4.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || android.support.v4.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) )
+                    if (android.os.Build.VERSION.SDK_INT >= 21 && (android.support.v4.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED || android.support.v4.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) )
                     {
                         requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, WRITE_PERMISSION_REQUEST);
                     }
