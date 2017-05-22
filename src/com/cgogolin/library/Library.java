@@ -164,6 +164,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     String filter = "";
     
     private String oldQueryText = "";
+    private String savedQueryText = null;
     private ListView bibtexListView = null;
     private LibraryBibtexAdapter bibtexAdapter = null;
     private ProgressBar progressBar  = null;
@@ -199,8 +200,12 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
 
         searchView.setOnQueryTextListener(this); //Implemented in: public boolean onQueryTextChange(String query) and public boolean onQueryTextSubmit(String query)
 //        searchView.setMaxWidth(Integer.MAX_VALUE);//Makes the overflow menu button disappear on API 23
+        if(savedQueryText!=null) 
+        {
+            searchView.setQuery(savedQueryText, true);
+            savedQueryText = null;
+        }
         
-
         MenuItem SelectedSortMenuItem = null;
         switch(sortMode){
             case None:
@@ -322,6 +327,11 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
 //        bibtexAdapter = (LibraryBibtexAdapter) getLastNonConfigurationInstance(); //retreving doesn't work as the on...BackgroundOpertaion() methods lose their references to the Views
         
         progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        
+        if(savedInstanceState != null)
+        {
+            savedQueryText = savedInstanceState.getString("SearchQueryText", savedQueryText);
+        }
     }
 
     
@@ -362,6 +372,19 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     // {
     //     return bibtexAdapter;
     // }
+    
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) { //Called when the app is destroyed by the system and in various other cases
+        super.onSaveInstanceState(outState);
+
+        String searchQueryText = "";
+        if(searchView!=null) 
+        {
+            searchQueryText = searchView.getQuery().toString();
+            outState.putString("SearchQueryText", searchQueryText);
+        }
+    }
     
     
     public void showSetLibraryPathDialog() //Open a dialoge to set the bibtex library path from user input

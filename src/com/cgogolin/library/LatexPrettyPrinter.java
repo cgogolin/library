@@ -74,7 +74,7 @@ public class LatexPrettyPrinter {
         map.put("\\\'{E}","\u0388");
         map.put("\\\'{C}","\u0106");
         map.put("\\\'{A}","\u00C1");
-        map.put("\\\'{A}","\u0386");
+//        map.put("\\\'{A}","\u0386");
 //        map.put("\\\'{$\\alpha$}","\u03AC");
         map.put("\\\'","\u0301");
         map.put("\\^{}","\u005E");
