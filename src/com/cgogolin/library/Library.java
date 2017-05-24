@@ -186,7 +186,6 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         MenuItem searchMenuItem = menu.findItem(R.id.menu_search);
         searchView = (android.support.v7.widget.SearchView)MenuItemCompat.getActionView(searchMenuItem);
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-//        searchView.setIconifiedByDefault(true);
         searchView.setIconified(false);
 
         searchView.setOnCloseListener( new SearchView.OnCloseListener() {
@@ -196,7 +195,16 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     return true;
                 }
             });
-        
+        // searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+        //         @Override
+        //         public boolean onMenuItemActionExpand(MenuItem item) {
+        //             return true;
+        //         }
+        //         @Override
+        //         public boolean onMenuItemActionCollapse(MenuItem item) {
+        //             return false; //prevent it from closing
+        //         }
+        //     });
 
         searchView.setOnQueryTextListener(this); //Implemented in: public boolean onQueryTextChange(String query) and public boolean onQueryTextSubmit(String query)
 //        searchView.setMaxWidth(Integer.MAX_VALUE);//Makes the overflow menu button disappear on API 23
@@ -285,14 +293,14 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     }
     
     
-    @Override
-    public void onBackPressed() //Handles clicks on the back button 
-    {
-        if (!searchView.getQuery().toString().equals(""))
-            searchView.setQuery("", true);
-        else
-            super.onBackPressed();
-    }
+    // @Override
+    // public void onBackPressed() //Handles clicks on the back button 
+    // {
+    //     if (!searchView.getQuery().toString().equals(""))
+    //         searchView.setQuery("", true);
+    //     else
+    //         super.onBackPressed();
+    // }
 
 
     @Override
