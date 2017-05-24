@@ -195,17 +195,6 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     return true;
                 }
             });
-        // searchMenuItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
-        //         @Override
-        //         public boolean onMenuItemActionExpand(MenuItem item) {
-        //             return true;
-        //         }
-        //         @Override
-        //         public boolean onMenuItemActionCollapse(MenuItem item) {
-        //             return false; //prevent it from closing
-        //         }
-        //     });
-
         searchView.setOnQueryTextListener(this); //Implemented in: public boolean onQueryTextChange(String query) and public boolean onQueryTextSubmit(String query)
 //        searchView.setMaxWidth(Integer.MAX_VALUE);//Makes the overflow menu button disappear on API 23
         if(savedQueryText!=null) 
@@ -309,12 +298,10 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             filter = intent.getStringExtra(SearchManager.QUERY);
             filterAndSortInBackground(filter, sortMode);
         }
-            //Focus the listView and close the keyboard
-        if(bibtexListView != null)
-        {
-            bibtexListView.requestFocus();
-            hideKeyboard();
-        }
+            //Unocus the searchView and close the keyboard
+        if(searchView != null)
+            searchView.clearFocus();
+        hideKeyboard();
     }
 
     
