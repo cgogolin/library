@@ -350,7 +350,7 @@ public class LatexPrettyPrinter {
         map.put("\\starequal ","\u225B");
         map.put("\\star ","\u22C6");
         map.put("\\stackrel{*}{=}","\u2A6E");
-        map.put("\\ss ","\u00DF");
+        map.put("\\ss","\u00DF");
         map.put("\\L", "\u0141");
         map.put("\\l", "\u0142");
         map.put("\\square ","\u25A1");
