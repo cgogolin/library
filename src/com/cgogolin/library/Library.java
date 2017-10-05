@@ -95,6 +95,8 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             }
             else {
                     //New versions of Android want files to be shared through a content:// Uri and not via a file:// Uri
+                    //First we convert backslashes to slashes (windows vs. linux path convention) and then try to idenitfy the uri corresponding to the path in the bibtex file
+                path = convertToLinuxPath(path);
                 Uri uri = getUriInLibraryFolder(path);
                 if(uri != null) 
                 {
@@ -112,6 +114,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 else
                     return uri;
             }
+        }
+        String convertToLinuxPath(String path) {
+            return path.replace("\\","/");
         }
         @Override
         String getModifiedPath(String path) {
