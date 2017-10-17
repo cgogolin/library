@@ -49,6 +49,10 @@ public class BaseBibtexEntry {
             //{:path1/file1.end1:end1;:path2/file2.end1:end2;...}
             //{path1/file1.end1:end1;path2/file2.end1:end2;...}
             //{path1/file1.end1;path2/file2.end1;...}
+            //{:path1\file1.end1:end1;:path2\file2.end1:end2;...}
+            //{path1\file1.end1:end1;path2\file2.end1:end2;...}
+            //{path1\file1.end1;path2\file2.end1;...}
+            //whereby path can contains Windows drive letters such as 'c:\'.
             //Furthermore we assume that '\_' is an escape sequence for '_'.
         if ( getFile().equals("") ) return null;
         String[] rawFileString = getFile().split(";");

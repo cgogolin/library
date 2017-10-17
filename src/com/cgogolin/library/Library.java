@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import android.util.Log;
 
 import android.app.Activity;
@@ -95,8 +96,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             }
             else {
                     //New versions of Android want files to be shared through a content:// Uri and not via a file:// Uri
-                    //First we convert backslashes to slashes (windows vs. linux path convention) and then try to idenitfy the uri corresponding to the path in the bibtex file
-                path = convertToLinuxPath(path);
+                    //First we convert backslashes to slashes and remove Windows style drive letters and then try to idenitfy the uri corresponding to the path in the bibtex file
                 Uri uri = getUriInLibraryFolder(path);
                 if(uri != null) 
                 {
@@ -114,9 +114,6 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 else
                     return uri;
             }
-        }
-        String convertToLinuxPath(String path) {
-            return path.replace("\\","/");
         }
         @Override
         String getModifiedPath(String path) {
@@ -579,7 +576,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 }
                 @Override
                 protected Boolean doInBackground(String... path0) {
-                    String path = path0[0];
+                    String path = convertToLinuxLikePath(path0[0]);
                     DocumentFile libraryFolderRootDir = DocumentFile.fromTreeUri(context, treeUri);
                     DocumentFile currentDir = libraryFolderRootDir;
                     DocumentFile file = null;
@@ -592,7 +589,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                         {
                                 //Log.i(getString(R.string.app_name), "found "+pathSegment);
                             currentDir = file;
-                            relativePath = relativePath+"/"+pathSegment;
+                            if(!relativePath.equals(""))
+                                relativePath += "/";
+                            relativePath += pathSegment;
                         }
                         else
                         {
@@ -605,48 +604,12 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                         String fileUriString = file.getUri().toString();
                         uriTargetString = path.substring(0,path.lastIndexOf(relativePath));
                         uriReplacementString = "";
-                        uriPrefixString = (uriTargetString.equals("") ? fileUriString : fileUriString.replace(Uri.encode(relativePath), ""));
+//                        uriPrefixString = (relativePath.equals("") ? fileUriString : fileUriString.replaceLast(Uri.encode(relativePath), ""));
+                        uriPrefixString = fileUriString.substring(0,fileUriString.lastIndexOf(Uri.encode(relativePath)));
                         return true;
                     }
                     else
                         return false;
-                    // Log.i(getString(R.string.app_name), "path="+path);
-                    // Log.i(getString(R.string.app_name), "relativePath="+relativePath);
-                    // Log.i(getString(R.string.app_name), "fileUriString="+fileUriString);
-                    // Log.i(getString(R.string.app_name), "libraryFolderRootUri="+treeUri.toString());
-                    // Log.i(getString(R.string.app_name), "from this we guess:");
-                    // Log.i(getString(R.string.app_name), "uriTargetString="+uriTargetString);
-                    // Log.i(getString(R.string.app_name), "uriReplacementString="+uriReplacementString);
-                    // Log.i(getString(R.string.app_name), "uriPrefixString="+uriPrefixString);
-                    // Log.i(getString(R.string.app_name), "getUriInLibraryFolder(path).toString()="+Uri.decode(getUriInLibraryFolder(path).toString()));
-                    // Log.i(getString(R.string.app_name), "compared to                            "+Uri.decode(fileUriString));
-                    // Log.i(getString(R.string.app_name), "and                                    "+Uri.decode(file.getUri().toString()));
-
-                    // Uri uri1 = file.getUri();
-                    // Uri uri2 = getUriInLibraryFolder(path);
-                    // Uri uri3 = Uri.parse(uri1.toString());
-                    
-                    // Log.i(getString(R.string.app_name), "uri1.equals(uri2)="+uri1.equals(uri2));
-                    // Log.i(getString(R.string.app_name), "uri1.compareTo(uri2)="+uri1.compareTo(uri2));
-                    
-                    // Log.i(getString(R.string.app_name), "uri1="+uri1.toString());
-                    // bibtexAdapter.checkCanWriteToUri(context, uri1);
-                    
-                    // Log.i(getString(R.string.app_name), "uri2="+uri2.toString());
-                    // bibtexAdapter.checkCanWriteToUri(context, uri2);
-
-                    // Log.i(getString(R.string.app_name), "uri3="+uri3.toString());
-                    // bibtexAdapter.checkCanWriteToUri(context, uri3);                    
-                    
-                    // Log.i(getString(R.string.app_name), "checking if we can write to uri from file");
-                    // bibtexAdapter.checkCanWriteToUri(context, file.getUri());
-                    // Log.i(getString(R.string.app_name), "checking if we can write to uri from getUriInLibraryFolder(path)");
-                    // bibtexAdapter.checkCanWriteToUri(context, getUriInLibraryFolder(path));
-
-                    // Log.i(getString(R.string.app_name), "checking if we can write to uri from file after converting to string and back");
-                    // bibtexAdapter.checkCanWriteToUri(context, Uri.parse(file.getUri().toString()));
-                    // Log.i(getString(R.string.app_name), "checking if we can write to uri from getUriInLibraryFolder(path) after converting to string and back");
-                    // bibtexAdapter.checkCanWriteToUri(context, Uri.parse(getUriInLibraryFolder(path).toString()));
                 }
                 @Override
                 protected void onPostExecute(Boolean succees) {
@@ -728,12 +691,13 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     
     Uri getUriInLibraryFolder(String path)
     {
+        path = convertToLinuxLikePath(path);
             //Some versions of Android suffer from this very stupid bug:
             //http://stackoverflow.com/questions/16475317/android-bug-string-substring5-replace-empty-string
         if(uriPrefixString == null || path == null)
             return null;
         else
-            return Uri.parse(uriPrefixString + Uri.encode((uriTargetString == null || uriTargetString.equals("")) ? path : path.replace(uriTargetString, uriReplacementString)));
+            return Uri.parse(uriPrefixString + Uri.encode((uriTargetString == null || uriTargetString.equals("")) ? path : path.replaceFirst(Pattern.quote(uriTargetString), uriReplacementString)));
     }
 
     
@@ -988,5 +952,12 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 alert.show();
             }
         }
+    }
+    
+    String convertToLinuxLikePath(String path) {
+        path = path.replace("\\","/");
+        if(path.indexOf(":")>=0)
+            path = path.substring(path.indexOf(":")+1);
+        return path;
     }
 }
