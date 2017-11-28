@@ -351,8 +351,6 @@ public class LatexPrettyPrinter {
         map.put("\\star ","\u22C6");
         map.put("\\stackrel{*}{=}","\u2A6E");
         map.put("\\ss","\u00DF");
-        map.put("\\L", "\u0141");
-        map.put("\\l", "\u0142");
         map.put("\\square ","\u25A1");
         map.put("\\sqsupseteq ","\u2292");
         map.put("\\sqsupset ","\u2290");
@@ -434,7 +432,7 @@ public class LatexPrettyPrinter {
         map.put("\\oint ","\u222E");
         map.put("\\oe ","\u0153");
         map.put("\\odot ","\u2299");
-        map.put("\\o ","\u00F8");
+        map.put("\\o","\u00F8");
         map.put("\\nwarrow ","\u2196");
         map.put("\\nvdash ","\u22AC");
         map.put("\\nvDash ","\u22AD");
@@ -552,7 +550,7 @@ public class LatexPrettyPrinter {
         map.put("\\lnapprox ","\u2A89");
         map.put("\\lmoustache ","\u23B0");
         map.put("\\llcorner ","\u231E");
-        map.put("\\ll ","\u226A");
+        map.put("\\ll","\u226A");
         map.put("\\libra ","\u264E");
         map.put("\\lfloor ","\u230A");
         map.put("\\lessgtr ","\u2276");
@@ -581,6 +579,7 @@ public class LatexPrettyPrinter {
         map.put("\\lazysinv ","\u223E");
         map.put("\\langle ","\u2329");
         map.put("\\lambda ","\u03BB");
+        map.put("\\l", "\u0142");
         map.put("\\kappa ","\u03BA");
         map.put("\\k","\u0328");
         map.put("\\jupiter ","\u2643");
@@ -592,7 +591,7 @@ public class LatexPrettyPrinter {
         map.put("\\infty ","\u221E");
         map.put("\\in ","\u2208");
         map.put("\\image ","\u22B7");
-        map.put("\\i ","\u0131");
+        map.put("\\i","\u0131");
         map.put("\\hslash ","\u210F");
         map.put("\\hphantom{0}","\u2007");
         map.put("\\hphantom{,}","\u2008");
@@ -804,8 +803,8 @@ public class LatexPrettyPrinter {
         map.put("\\Phi ","\u03A6");
         map.put("\\Omega ","\u03A9");
         map.put("\\Omega ","\u2126");
-        map.put("\\OE ","\u0152");
-        map.put("\\O ","\u00D8");
+        map.put("\\OE","\u0152");
+        map.put("\\O","\u00D8");
         map.put("\\NotSucceedsTilde ","\u227F-00338");
         map.put("\\NotSquareSuperset ","\u2290-00338");
         map.put("\\NotSquareSubset ","\u228F-00338");
@@ -839,6 +838,7 @@ public class LatexPrettyPrinter {
         map.put("\\LeftDownVectorBar ","\u2959");
         map.put("\\LeftDownTeeVector ","\u2961");
         map.put("\\Lambda ","\u039B");
+        map.put("\\L", "\u0141");
         map.put("\\Koppa ","\u03DE");
         map.put("\\Kappa ","\u039A");
         map.put("\\Iota ","\u0399");
