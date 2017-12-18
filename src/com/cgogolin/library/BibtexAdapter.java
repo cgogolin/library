@@ -247,7 +247,7 @@ public class BibtexAdapter extends BaseAdapter {
     }
 
     private void setTextViewAppearance(TextView textView, String text){
-        if(text.equals(""))
+        if(text==null || text.equals(""))
             textView.setVisibility(View.GONE);
         else
         {       
@@ -270,19 +270,19 @@ public class BibtexAdapter extends BaseAdapter {
         if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), "");
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_authors), "");
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_journal), "");
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_doi), "");
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_arxiv), "");
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), "");
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_journal), "");
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_doi), "");
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_arxiv), "");
         }
         else
         {
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), entry.getTitle());
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_doi), entry.getDoiFormated(context));
-            setTextViewAppearance((TextView) convertView.findViewById(R.id.bibtex_arxiv), entry.getEprintFormated());
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_doi), entry.getDoiFormated(context));
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_arxiv), entry.getEprintFormated());
 
             if(entry.extraInfoVisible())
                 makeExtraInfoVisible(position, convertView, context, false);
