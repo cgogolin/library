@@ -856,7 +856,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             case LIBRARY_FILE_PICK_REQUEST:
                 if(resultCode == Activity.RESULT_OK)
                 {
-                    if (intent != null) {
+                    if (intent != null && intent.getData() != null) {
                         if(setLibraryPathDialog!=null)
                         {
                             setLibraryPathDialog.dismiss();
