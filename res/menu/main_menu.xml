@@ -32,6 +32,11 @@
 	      />
       </menu>
     </item>
+        <item
+          android:id="@+id/menu_groups"
+          android:title="@string/menu_groups"
+          app:showAsAction="never"
+          />
         <item android:id="@+id/menu_set_library_path"
 	  android:title="@string/menu_set_library_path" 
 	  android:showAsAction="never"

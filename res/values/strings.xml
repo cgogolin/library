@@ -56,4 +56,5 @@
     <string name="dialog_analyse_library_root_message">Trying to find the requested file in the directory you picked. This might take a while because Android\'s DocumentFile.findFile() can be very slow... This only needs to be done while opening the first file.</string>
     <string name="dialog_analyse_library_root_message_success" formatted="false">Library found the file %s in %s under the uri %s.</string>
     <string name="dialog_analyse_library_root_message_failed" formatted="false">Library failed to find the file %s inside the directory %s.</string>
+    <string name="menu_groups">Groups</string>
 </resources>

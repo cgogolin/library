@@ -52,6 +52,8 @@ import android.webkit.MimeTypeMap;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.Transformation;
+import java.util.HashMap;
+import java.util.Set;
 
 public class BibtexAdapter extends BaseAdapter {
     
@@ -59,34 +61,57 @@ public class BibtexAdapter extends BaseAdapter {
     
     private ArrayList<BibtexEntry> bibtexEntryList;
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
+    private ArrayList<BibtexEntry> bibtexGroupEntryList;
+    private HashMap<String,ArrayList<BibtexEntry>> groupMap;
     private String filter = null;
     
     SortMode sortedAccordingTo = SortMode.None;
     String filteredAccodingTo = "";
     SortMode sortingAccordingTo = null;
     String filteringAccodingTo = null;
+    String selectedGroup = "";
+    String selectingGroup = null;
+
 
     AsyncTask<Object,Void,Void> applyFilterTask;
     AsyncTask<BibtexAdapter.SortMode,Void,Void> sortTask;
-    
+
     public BibtexAdapter(InputStream inputStream) throws java.io.IOException
-    {   
+    {
         bibtexEntryList = BibtexParser.parse(inputStream);
-        
+        bibtexGroupEntryList = bibtexEntryList;
             //Copy all entries to the filtered list
         displayedBibtexEntryList = new ArrayList<BibtexEntry>();
         displayedBibtexEntryList.addAll(bibtexEntryList);
-    }
+        groupMap = new HashMap<String,ArrayList<BibtexEntry>>();
+        for ( BibtexEntry entry : bibtexEntryList )
+        { //populate groups hashmap
+            List<String> entryGroupList = entry.getGroups();
+            if ( entryGroupList != null ){
+               for ( String groupName : entryGroupList ){
+                   addToGroup(groupName, entry);
+               }
+            }
+        }
 
+    }
 
     public void onPreBackgroundOperation() {}
     public void onPostBackgroundOperation() {}
     public void onBackgroundOperationCanceled() {}
     public void onEntryClick(View v) {}
-    
-    public synchronized void filterAndSortInBackground(String filter, SortMode sortMode) {
+    public Set<String> getGroups(){ return groupMap.keySet(); }
+    public void addToGroup(String groupName, BibtexEntry entry)
+    {
+        if (!groupMap.containsKey(groupName)) {
+            groupMap.put(groupName, new ArrayList<BibtexEntry>());
+        }
+            groupMap.get(groupName).add(entry);
+    }
 
-        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortingAccordingTo.equals(sortMode)) )
+    public synchronized void filterAndSortInBackground(String filter, SortMode sortMode, String group) {
+
+        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortingAccordingTo.equals(sortMode) && selectingGroup != null && selectingGroup.equals(group)) )
             return;
 
         if(applyFilterTask!=null)
@@ -101,6 +126,13 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 @Override
                 protected Void doInBackground(Object... params) {
+                    selectingGroup = (String) params[2];
+                    if(!selectedGroup.equals(selectingGroup))
+                    {
+                        selectGroup(selectingGroup);
+                    }
+                    selectingGroup = null;
+                    //must set filteringAccordingTo after selecting group
                     filteringAccodingTo = (String)params[0];
                     sortingAccordingTo = (SortMode)params[1];
                     if(!filteredAccodingTo.equals(filteringAccodingTo))
@@ -121,7 +153,22 @@ public class BibtexAdapter extends BaseAdapter {
                     onPostBackgroundOperation();
                 }
             };
-        applyFilterTask.execute((Object)filter, (Object)sortMode);
+        applyFilterTask.execute((Object)filter, (Object)sortMode, (Object) group);
+    }
+
+    protected synchronized void selectGroup(String groupName){
+        if (groupName.equals("") || !groupMap.containsKey(groupName)) {
+            bibtexGroupEntryList = bibtexEntryList;
+            selectedGroup = "";
+        }
+        else {
+            bibtexGroupEntryList = groupMap.get(groupName);
+            selectedGroup = groupName;
+        }
+        selectingGroup = null;
+        filter(""); //put all group entries in the displayed list, whether or not additional filtering needed
+        filteredAccodingTo = "";
+        sortedAccordingTo = SortMode.None;
     }
 
 
@@ -129,11 +176,11 @@ public class BibtexAdapter extends BaseAdapter {
         ArrayList<BibtexEntry> filteredTmpBibtexEntryList = new ArrayList<BibtexEntry>();
         if (filter[0].trim().equals(""))
         {
-            filteredTmpBibtexEntryList.addAll(bibtexEntryList);
+            filteredTmpBibtexEntryList.addAll(bibtexGroupEntryList);
         }
         else
         {
-            for ( BibtexEntry entry : bibtexEntryList ) {
+            for ( BibtexEntry entry : bibtexGroupEntryList ) {
                 String blob = entry.getStringBlob().toLowerCase();
                 String[] substrings = filter[0].toLowerCase().split(" ");
                 boolean matches = true;
@@ -171,7 +218,7 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 @Override
                 protected Void doInBackground(BibtexAdapter.SortMode... sortMode) {
-                    filterAndSortInBackground(null, null);//Does nothing if filtering is already done, else waits until filtering is finished
+                    filterAndSortInBackground(null, null, null);//Does nothing if filtering is already done, else waits until filtering is finished
                     sortingAccordingTo = (SortMode)sortMode[0];
                     if(!sortedAccordingTo.equals(sortingAccordingTo)) 
                     {
@@ -346,7 +393,7 @@ public class BibtexAdapter extends BaseAdapter {
         entry.setExtraInfoVisible(true);
 
         LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        
+
             //Read the Files list from the BibtexEntry
         List<String> associatedFilesList = entry.getFiles();
         if (associatedFilesList != null)
