@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -55,6 +54,8 @@ import android.view.animation.Transformation;
 import java.util.HashMap;
 import java.util.Set;
 
+import static java.util.Arrays.fill;
+
 public class BibtexAdapter extends BaseAdapter {
     
     public enum SortMode {None, Date, Author, Journal}
@@ -72,6 +73,13 @@ public class BibtexAdapter extends BaseAdapter {
     String selectedGroup = "";
     String selectingGroup = null;
 
+    // State of the row that needs to show separator
+    private static final int SECTIONED_STATE = 1;
+    // State of the row that need not show separator
+    private static final int REGULAR_STATE = 2;
+    // Cache row states based on positions
+    private int[] mRowStates;
+    private Comparator<BibtexEntry> separatorComparator = null;
 
     AsyncTask<Object,Void,Void> applyFilterTask;
     AsyncTask<BibtexAdapter.SortMode,Void,Void> sortTask;
@@ -93,7 +101,7 @@ public class BibtexAdapter extends BaseAdapter {
                }
             }
         }
-
+        mRowStates = new int[getCount()];
     }
 
     public void onPreBackgroundOperation() {}
@@ -248,6 +256,7 @@ public class BibtexAdapter extends BaseAdapter {
                             return  entry1.getNumberInFile().compareTo(entry2.getNumberInFile());
                         }
                     });
+                separatorComparator = null;
                 break;
             case Date:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
@@ -256,7 +265,13 @@ public class BibtexAdapter extends BaseAdapter {
                             return  (entry2.getDateFormated()+entry2.getNumberInFile()).compareTo(entry1.getDateFormated()+entry1.getNumberInFile());
                         }
                     });
-                break;                
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return (entry2.getYear().compareTo(entry1.getYear()));
+                    }
+                    };
+                break;
             case Author:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
                         @Override
@@ -264,6 +279,12 @@ public class BibtexAdapter extends BaseAdapter {
                             return  (entry1.getAuthor()+entry1.getNumberInFile()).compareTo(entry2.getAuthor()+entry2.getNumberInFile());
                         }
                     });
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return entry1.getAuthor().substring(0,1).compareTo(entry2.getAuthor().substring(0,1));
+                    }
+                };
                 break;
             case Journal:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
@@ -272,10 +293,18 @@ public class BibtexAdapter extends BaseAdapter {
                             return  (entry1.getJournal()+entry1.getNumberInFile()).compareTo(entry2.getJournal()+entry2.getNumberInFile());
                         }
                     });
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return entry1.getJournal().toLowerCase().compareTo(entry2.getJournal().toLowerCase());
+                    }
+                };
+
                 break;
         }
         sortingAccordingTo = null;
         sortedAccordingTo = sortMode;
+        fill(mRowStates,0);
     }
 
     public synchronized void prepareForFiltering()
@@ -302,19 +331,24 @@ public class BibtexAdapter extends BaseAdapter {
             textView.setVisibility(View.VISIBLE);
         }
     }
-    
-    @Override    
+
+   @Override
     public View getView(final int position, View convertView, ViewGroup parent)
     {
         final Context context = parent.getContext();
         final LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    
+        boolean showSeparator = false;
+        String separatorText ="";
+
         BibtexEntry entry = getItem(position);
+
+
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bibtexentry, null);
         }
-        
+
         if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.separator), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), "");
@@ -322,6 +356,43 @@ public class BibtexAdapter extends BaseAdapter {
         }
         else
         {
+            if (separatorComparator != null) {
+                switch (mRowStates[position]) {
+                    case SECTIONED_STATE:
+                        showSeparator = true;
+                        break;
+
+                    case REGULAR_STATE:
+                        showSeparator = false;
+                        break;
+
+                    default:
+                        if (position == 0) {
+                            showSeparator = true;
+                        } else {
+                            BibtexEntry prevEntry = getItem(position - 1);
+                            if (separatorComparator.compare(entry, prevEntry) != 0){
+                                showSeparator = true;
+                            }
+                        }
+                        mRowStates[position] = showSeparator ? SECTIONED_STATE : REGULAR_STATE;
+                        break;
+                }
+                if (showSeparator) {
+                    switch (sortedAccordingTo) {
+                        case Date:
+                            separatorText = entry.getYear();
+                            break;
+                        case Author:
+                            separatorText = entry.getAuthor().substring(0, 1);
+                            break;
+                        case Journal:
+                            separatorText = entry.getJournal();
+                            break;
+                    }
+                }
+            }
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.separator), separatorText);
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), entry.getTitle());
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));

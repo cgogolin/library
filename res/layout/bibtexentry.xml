@@ -8,6 +8,18 @@
 	      android:orientation="vertical"
 	      android:paddingTop="2sp"
 	      >
+	<TextView
+        android:id="@+id/separator"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:gravity="left"
+        android:textSize="15sp"
+        android:textColor="#ffffff"
+        android:background="#808080"
+        android:textStyle="bold"
+        android:paddingLeft="3sp"
+        android:paddingTop="2sp"
+        android:paddingBottom="2sp"/>
   <TextView 
      android:id="@+id/bibtex_info"
      android:layout_width="fill_parent"    
@@ -38,7 +50,7 @@
      android:id="@+id/bibtex_journal"
      android:layout_width="fill_parent" 	    
      android:layout_height="wrap_content" 
-     android:textSize="12sp"
+     android:textSize="13sp"
      android:textColor="#505050"
      >
   </TextView>
