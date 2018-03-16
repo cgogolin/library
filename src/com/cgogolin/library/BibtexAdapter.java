@@ -58,7 +58,7 @@ import static java.util.Arrays.fill;
 
 public class BibtexAdapter extends BaseAdapter {
     
-    public enum SortMode {None, Date, Author, Journal}
+    public enum SortMode {None, Date, Author, Journal, Title}
     
     private ArrayList<BibtexEntry> bibtexEntryList;
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
@@ -299,8 +299,21 @@ public class BibtexAdapter extends BaseAdapter {
                         return entry1.getJournal().toLowerCase().compareTo(entry2.getJournal().toLowerCase());
                     }
                 };
-
                 break;
+            case Title:
+                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
+                        @Override
+                        public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                            return  (entry1.getTitle()+entry1.getNumberInFile()).compareTo(entry2.getTitle()+entry2.getNumberInFile());
+                        }
+                    });
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return entry1.getTitle().substring(0,1).compareTo(entry2.getTitle().substring(0,1));
+                    }
+                };
+
         }
         sortingAccordingTo = null;
         sortedAccordingTo = sortMode;
@@ -388,6 +401,9 @@ public class BibtexAdapter extends BaseAdapter {
                             break;
                         case Journal:
                             separatorText = entry.getJournal();
+                            break;
+                        case Title:
+                            separatorText = entry.getTitle().substring(0, 1);
                             break;
                     }
                 }

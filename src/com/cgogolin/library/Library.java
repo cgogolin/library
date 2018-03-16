@@ -222,6 +222,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             case Journal:
                 SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_journal);
                 break;
+            case Title:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_title);
+                break;
         }
         if(SelectedSortMenuItem!=null)
             SelectedSortMenuItem.setChecked(true);
@@ -263,6 +266,10 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 break;
             case R.id.menu_sort_by_journal:
                 sortMode = BibtexAdapter.SortMode.Journal;
+                sortInBackground(sortMode);
+                break;
+            case R.id.menu_sort_by_title:
+                sortMode = BibtexAdapter.SortMode.Title;
                 sortInBackground(sortMode);
                 break;
             case R.id.menu_groups:

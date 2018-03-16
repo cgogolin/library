@@ -30,6 +30,10 @@
 	      android:title="@string/menu_sort_by_journal"
 	      android:checkable="true"
 	      />
+	<item android:id="@+id/menu_sort_by_title"
+	      android:title="@string/menu_sort_by_title"
+	      android:checkable="true"
+	      />
       </menu>
     </item>
         <item
