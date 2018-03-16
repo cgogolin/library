@@ -13,7 +13,7 @@
      android:layout_width="fill_parent"    
      android:layout_height="fill_parent"
      android:gravity="center"
-     android:textSize="20sp"
+     android:textSize="10sp"
      android:textColor="#808080"
      android:paddingTop="30sp"
      android:paddingBottom="30sp"
@@ -23,7 +23,7 @@
      android:id="@+id/bibtex_title"
      android:layout_width="fill_parent" 	    
      android:layout_height="wrap_content"
-     android:textSize="20sp" 
+     android:textSize="15sp"
      android:textStyle="bold"
      >
   </TextView>
@@ -31,14 +31,14 @@
      android:id="@+id/bibtex_authors"
      android:layout_width="fill_parent" 	    
      android:layout_height="wrap_content" 
-     android:textSize="18sp"
+     android:textSize="15sp"
      >
   </TextView>
   <TextView 
      android:id="@+id/bibtex_journal"
      android:layout_width="fill_parent" 	    
      android:layout_height="wrap_content" 
-     android:textSize="16sp"
+     android:textSize="12sp"
      android:textColor="#505050"
      >
   </TextView>
