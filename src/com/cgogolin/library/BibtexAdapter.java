@@ -319,8 +319,6 @@ public class BibtexAdapter extends BaseAdapter {
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_journal), "");
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_doi), "");
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_arxiv), "");
         }
         else
         {
@@ -328,8 +326,6 @@ public class BibtexAdapter extends BaseAdapter {
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), entry.getTitle());
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_doi), entry.getDoiFormated(context));
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_arxiv), entry.getEprintFormated());
 
             if(entry.extraInfoVisible())
                 makeExtraInfoVisible(position, convertView, context, false);
@@ -393,6 +389,13 @@ public class BibtexAdapter extends BaseAdapter {
         entry.setExtraInfoVisible(true);
 
         LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        final TextView doiTV = new TextView(context);
+        setTextViewAppearance(doiTV, entry.getDoiFormated(context));
+        extraInfo.addView(doiTV);
+        final TextView arxivTV = new TextView(context);
+        setTextViewAppearance(arxivTV, entry.getEprintFormated());
+        extraInfo.addView(arxivTV);
 
             //Read the Files list from the BibtexEntry
         List<String> associatedFilesList = entry.getFiles();

@@ -42,22 +42,6 @@
      android:textColor="#505050"
      >
   </TextView>
-  <TextView
-     android:id="@+id/bibtex_doi"
-     android:layout_width="fill_parent" 	    
-     android:layout_height="wrap_content"
-     android:textSize="16sp"
-     android:textColor="#505050"
-     >
-  </TextView>
-  <TextView
-     android:id="@+id/bibtex_arxiv"
-     android:layout_width="fill_parent" 	    
-     android:layout_height="wrap_content"
-     android:textSize="16sp"
-     android:textColor="#505050"
-     >
-  </TextView>
   <!--  <TextView
 	android:id="@+id/bibtex_file"
 	android:layout_width="fill_parent" 	    
