@@ -833,6 +833,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     if(bibtexAdapter.getGroups().isEmpty() && menu != null){
                         menu.findItem(R.id.menu_groups).setVisible(false);
                     }
+                    if(!bibtexAdapter.getGroups().isEmpty() && menu != null){
+                        menu.findItem(R.id.menu_groups).setVisible(true);
+                    }
                 }
                 else
                 {
