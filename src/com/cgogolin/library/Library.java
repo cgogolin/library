@@ -838,7 +838,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         
     private void resetFilter() {
         if(bibtexAdapter!=null)
-            bibtexAdapter.filterAndSortInBackground("", null, group);
+            bibtexAdapter.filterAndSortInBackground("", sortMode, group);
         filter = "";
     }
     
