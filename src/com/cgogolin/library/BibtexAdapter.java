@@ -119,7 +119,7 @@ public class BibtexAdapter extends BaseAdapter {
 
     public synchronized void filterAndSortInBackground(String filter, SortMode sortMode, String group) {
 
-        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortingAccordingTo.equals(sortMode) && selectingGroup != null && selectingGroup.equals(group)) )
+        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortMode != null && sortingAccordingTo.equals(sortMode) && selectingGroup != null && group != null && selectingGroup.equals(group)) )
             return;
 
         if(applyFilterTask!=null)
