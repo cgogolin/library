@@ -40,6 +40,7 @@
     <string name="menu_sort_by_date">Nach Datum sortieren</string>
     <string name="menu_sort_by_author">Nach Autor sortieren</string>
     <string name="menu_sort_by_journal">Nach Journal sortieren</string>
+    <string name="menu_sort_by_title">Nach Titel sortieren</string>
     <string name="no_matches">Keine Treffer</string>
     <string name="pick_bibtex_library">BibTeX-Datei wählen</string>
     <string name="exception_while_loading_library">Ausnahmefehler beim laden der BibTeX-Datei: </string>
@@ -56,4 +57,5 @@
     <string name="dialog_analyse_library_root_message">Library versucht nun die gewählte Datei im gewählten Ordner zu finden. Dies kann eine Weile dauern da die Funktion DocumentFile.findFile() unter Android sehr langsam sein kann... Dies ist nur beim öffnen der ersten Datei nötig.</string>
     <string name="dialog_analyse_library_root_message_success" formatted="false">Library hat die Datei %s im Ordner %s unter der Uri %s gefunden.</string>
     <string name="dialog_analyse_library_root_message_failed" formatted="false">Library konnte die Datei %s nicht im Ordner %s finden.</string>
+    <string name="menu_groups">Groupen</string>
 </resources>
