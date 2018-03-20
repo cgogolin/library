@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -52,41 +51,75 @@ import android.webkit.MimeTypeMap;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.Transformation;
+import java.util.HashMap;
+import java.util.Set;
+
+import static java.util.Arrays.fill;
 
 public class BibtexAdapter extends BaseAdapter {
     
-    public enum SortMode {None, Date, Author, Journal}
+    public enum SortMode {None, Date, Author, Journal, Title}
     
     private ArrayList<BibtexEntry> bibtexEntryList;
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
+    private ArrayList<BibtexEntry> bibtexGroupEntryList;
+    private HashMap<String,ArrayList<BibtexEntry>> groupMap;
     private String filter = null;
     
     SortMode sortedAccordingTo = SortMode.None;
     String filteredAccodingTo = "";
     SortMode sortingAccordingTo = null;
     String filteringAccodingTo = null;
+    String selectedGroup = "";
+    String selectingGroup = null;
+
+    // State of the row that needs to show separator
+    private static final int SECTIONED_STATE = 1;
+    // State of the row that need not show separator
+    private static final int REGULAR_STATE = 2;
+    // Cache row states based on positions
+    private int[] mRowStates;
+    private Comparator<BibtexEntry> separatorComparator = null;
 
     AsyncTask<Object,Void,Void> applyFilterTask;
     AsyncTask<BibtexAdapter.SortMode,Void,Void> sortTask;
-    
+
     public BibtexAdapter(InputStream inputStream) throws java.io.IOException
-    {   
+    {
         bibtexEntryList = BibtexParser.parse(inputStream);
-        
+        bibtexGroupEntryList = bibtexEntryList;
             //Copy all entries to the filtered list
         displayedBibtexEntryList = new ArrayList<BibtexEntry>();
         displayedBibtexEntryList.addAll(bibtexEntryList);
+        groupMap = new HashMap<String,ArrayList<BibtexEntry>>();
+        for ( BibtexEntry entry : bibtexEntryList )
+        { //populate groups hashmap
+            List<String> entryGroupList = entry.getGroups();
+            if ( entryGroupList != null ){
+               for ( String groupName : entryGroupList ){
+                   addToGroup(groupName, entry);
+               }
+            }
+        }
+        mRowStates = new int[getCount()];
     }
-
 
     public void onPreBackgroundOperation() {}
     public void onPostBackgroundOperation() {}
     public void onBackgroundOperationCanceled() {}
     public void onEntryClick(View v) {}
-    
-    public synchronized void filterAndSortInBackground(String filter, SortMode sortMode) {
+    public Set<String> getGroups(){ return groupMap.keySet(); }
+    public void addToGroup(String groupName, BibtexEntry entry)
+    {
+        if (!groupMap.containsKey(groupName)) {
+            groupMap.put(groupName, new ArrayList<BibtexEntry>());
+        }
+            groupMap.get(groupName).add(entry);
+    }
 
-        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortingAccordingTo.equals(sortMode)) )
+    public synchronized void filterAndSortInBackground(String filter, SortMode sortMode, String group) {
+
+        if (filter == null || (filteringAccodingTo != null && filteringAccodingTo.equals(filter) && sortingAccordingTo != null && sortingAccordingTo.equals(sortMode) && selectingGroup != null && selectingGroup.equals(group)) )
             return;
 
         if(applyFilterTask!=null)
@@ -101,6 +134,13 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 @Override
                 protected Void doInBackground(Object... params) {
+                    selectingGroup = (String) params[2];
+                    if(!selectedGroup.equals(selectingGroup))
+                    {
+                        selectGroup(selectingGroup);
+                    }
+                    selectingGroup = null;
+                    //must set filteringAccordingTo after selecting group
                     filteringAccodingTo = (String)params[0];
                     sortingAccordingTo = (SortMode)params[1];
                     if(!filteredAccodingTo.equals(filteringAccodingTo))
@@ -121,7 +161,22 @@ public class BibtexAdapter extends BaseAdapter {
                     onPostBackgroundOperation();
                 }
             };
-        applyFilterTask.execute((Object)filter, (Object)sortMode);
+        applyFilterTask.execute((Object)filter, (Object)sortMode, (Object) group);
+    }
+
+    protected synchronized void selectGroup(String groupName){
+        if (groupName.equals("") || !groupMap.containsKey(groupName)) {
+            bibtexGroupEntryList = bibtexEntryList;
+            selectedGroup = "";
+        }
+        else {
+            bibtexGroupEntryList = groupMap.get(groupName);
+            selectedGroup = groupName;
+        }
+        selectingGroup = null;
+        filter(""); //put all group entries in the displayed list, whether or not additional filtering needed
+        filteredAccodingTo = "";
+        sortedAccordingTo = SortMode.None;
     }
 
 
@@ -129,11 +184,11 @@ public class BibtexAdapter extends BaseAdapter {
         ArrayList<BibtexEntry> filteredTmpBibtexEntryList = new ArrayList<BibtexEntry>();
         if (filter[0].trim().equals(""))
         {
-            filteredTmpBibtexEntryList.addAll(bibtexEntryList);
+            filteredTmpBibtexEntryList.addAll(bibtexGroupEntryList);
         }
         else
         {
-            for ( BibtexEntry entry : bibtexEntryList ) {
+            for ( BibtexEntry entry : bibtexGroupEntryList ) {
                 String blob = entry.getStringBlob().toLowerCase();
                 String[] substrings = filter[0].toLowerCase().split(" ");
                 boolean matches = true;
@@ -171,7 +226,7 @@ public class BibtexAdapter extends BaseAdapter {
                     }
                 @Override
                 protected Void doInBackground(BibtexAdapter.SortMode... sortMode) {
-                    filterAndSortInBackground(null, null);//Does nothing if filtering is already done, else waits until filtering is finished
+                    filterAndSortInBackground(null, null, null);//Does nothing if filtering is already done, else waits until filtering is finished
                     sortingAccordingTo = (SortMode)sortMode[0];
                     if(!sortedAccordingTo.equals(sortingAccordingTo)) 
                     {
@@ -201,6 +256,7 @@ public class BibtexAdapter extends BaseAdapter {
                             return  entry1.getNumberInFile().compareTo(entry2.getNumberInFile());
                         }
                     });
+                separatorComparator = null;
                 break;
             case Date:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
@@ -209,7 +265,13 @@ public class BibtexAdapter extends BaseAdapter {
                             return  (entry2.getDateFormated()+entry2.getNumberInFile()).compareTo(entry1.getDateFormated()+entry1.getNumberInFile());
                         }
                     });
-                break;                
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return (entry2.getYear().compareTo(entry1.getYear()));
+                    }
+                    };
+                break;
             case Author:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
                         @Override
@@ -217,6 +279,12 @@ public class BibtexAdapter extends BaseAdapter {
                             return  (entry1.getAuthor()+entry1.getNumberInFile()).compareTo(entry2.getAuthor()+entry2.getNumberInFile());
                         }
                     });
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return entry1.getAuthor().substring(0,1).compareTo(entry2.getAuthor().substring(0,1));
+                    }
+                };
                 break;
             case Journal:
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
@@ -225,10 +293,31 @@ public class BibtexAdapter extends BaseAdapter {
                             return  (entry1.getJournal()+entry1.getNumberInFile()).compareTo(entry2.getJournal()+entry2.getNumberInFile());
                         }
                     });
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return entry1.getJournal().toLowerCase().compareTo(entry2.getJournal().toLowerCase());
+                    }
+                };
                 break;
+            case Title:
+                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
+                        @Override
+                        public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                            return  (entry1.getTitle()+entry1.getNumberInFile()).compareTo(entry2.getTitle()+entry2.getNumberInFile());
+                        }
+                    });
+                separatorComparator = new Comparator<BibtexEntry>() {
+                    @Override
+                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                        return entry1.getTitle().substring(0,1).compareTo(entry2.getTitle().substring(0,1));
+                    }
+                };
+
         }
         sortingAccordingTo = null;
         sortedAccordingTo = sortMode;
+        fill(mRowStates,0);
     }
 
     public synchronized void prepareForFiltering()
@@ -255,34 +344,75 @@ public class BibtexAdapter extends BaseAdapter {
             textView.setVisibility(View.VISIBLE);
         }
     }
-    
-    @Override    
+
+   @Override
     public View getView(final int position, View convertView, ViewGroup parent)
     {
         final Context context = parent.getContext();
         final LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                    
+        boolean showSeparator = false;
+        String separatorText ="";
+
         BibtexEntry entry = getItem(position);
+
+
         if (convertView == null) {
             convertView = inflater.inflate(R.layout.bibtexentry, null);
         }
-        
+
         if(displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.separator), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_journal), "");
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_doi), "");
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_arxiv), "");
         }
         else
         {
+            if (separatorComparator != null) {
+                switch (mRowStates[position]) {
+                    case SECTIONED_STATE:
+                        showSeparator = true;
+                        break;
+
+                    case REGULAR_STATE:
+                        showSeparator = false;
+                        break;
+
+                    default:
+                        if (position == 0) {
+                            showSeparator = true;
+                        } else {
+                            BibtexEntry prevEntry = getItem(position - 1);
+                            if (separatorComparator.compare(entry, prevEntry) != 0){
+                                showSeparator = true;
+                            }
+                        }
+                        mRowStates[position] = showSeparator ? SECTIONED_STATE : REGULAR_STATE;
+                        break;
+                }
+                if (showSeparator) {
+                    switch (sortedAccordingTo) {
+                        case Date:
+                            separatorText = entry.getYear();
+                            break;
+                        case Author:
+                            separatorText = entry.getAuthor().substring(0, 1);
+                            break;
+                        case Journal:
+                            separatorText = entry.getJournal();
+                            break;
+                        case Title:
+                            separatorText = entry.getTitle().substring(0, 1);
+                            break;
+                    }
+                }
+            }
+            setTextViewAppearance((TextView)convertView.findViewById(R.id.separator), separatorText);
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_info), "");
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_title), entry.getTitle());
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
             setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_doi), entry.getDoiFormated(context));
-            setTextViewAppearance((TextView)convertView.findViewById(R.id.bibtex_arxiv), entry.getEprintFormated());
 
             if(entry.extraInfoVisible())
                 makeExtraInfoVisible(position, convertView, context, false);
@@ -346,7 +476,14 @@ public class BibtexAdapter extends BaseAdapter {
         entry.setExtraInfoVisible(true);
 
         LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        
+
+        final TextView doiTV = new TextView(context);
+        setTextViewAppearance(doiTV, entry.getDoiFormated(context));
+        extraInfo.addView(doiTV);
+        final TextView arxivTV = new TextView(context);
+        setTextViewAppearance(arxivTV, entry.getEprintFormated());
+        extraInfo.addView(arxivTV);
+
             //Read the Files list from the BibtexEntry
         List<String> associatedFilesList = entry.getFiles();
         if (associatedFilesList != null)

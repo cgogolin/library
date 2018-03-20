@@ -41,6 +41,20 @@ public class BaseBibtexEntry {
     public String getDocumentType() {
         return saveGet("documenttyp");
     }
+    public String getGroup() {
+        return saveGet("groups");
+    }
+    public List<String> getGroups(){
+        //We assume the following format:
+        //{group1, group2...}
+        if ( getGroup().equals("") ) return null;
+        String[] rawGroupString = getGroup().split(",");
+        for (int i = 0; i < rawGroupString.length; i++) {
+            rawGroupString[i] = rawGroupString[i].trim();
+        }
+        List<String> groups = new ArrayList<String>(Arrays.asList(rawGroupString));
+        return groups;
+    }
     public String getFile() {
         return saveGet("file");
     }

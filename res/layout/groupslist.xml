@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <!--<ProgressBar style="?android:attr/progressBarStyleHorizontal"
+        android:id="@+id/progress_bar"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true" />-->
+    <ListView android:id="@+id/bibtex_grouplist_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:clickable="true"
+        android:saveEnabled="true"
+        android:focusableInTouchMode="true"
+        android:focusable="true"
+        android:fadeScrollbars="false"
+        >
+    </ListView>
+</RelativeLayout>

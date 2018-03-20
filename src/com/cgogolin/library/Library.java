@@ -148,7 +148,8 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     public static final int LIBRARY_FILE_PICK_REQUEST = 0;
     public static final int WRITE_PERMISSION_REQUEST = 1;
     public static final int SET_LIBRARY_FOLDER_ROOT_REQUEST = 2;
-    
+    public static final int SELECT_GROUP_REQUEST = 3;
+
     private boolean libraryWasPreviouslyInitializedCorrectly = false;
     private String libraryPathString = "/mnt/sdcard/";
     private String pathTargetString = "home/username";
@@ -164,7 +165,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     
     BibtexAdapter.SortMode sortMode = BibtexAdapter.SortMode.None;
     String filter = "";
-    
+    String group = "";
+    private Menu menu = null;
+
     private String oldQueryText = "";
     private String savedQueryText = null;
     private ListView bibtexListView = null;
@@ -219,6 +222,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             case Journal:
                 SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_journal);
                 break;
+            case Title:
+                SelectedSortMenuItem = menu.findItem(R.id.menu_sort_by_title);
+                break;
         }
         if(SelectedSortMenuItem!=null)
             SelectedSortMenuItem.setChecked(true);
@@ -228,7 +234,9 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             if(pathConversionMenuItem != null) 
                 pathConversionMenuItem.setVisible(false);
         }
-        
+
+        this.menu = menu;
+
         return true;
     }
 
@@ -260,6 +268,14 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                 sortMode = BibtexAdapter.SortMode.Journal;
                 sortInBackground(sortMode);
                 break;
+            case R.id.menu_sort_by_title:
+                sortMode = BibtexAdapter.SortMode.Title;
+                sortInBackground(sortMode);
+                break;
+            case R.id.menu_groups:
+                Intent intent = new Intent(this, GroupsActivity.class);
+                intent.putExtra("group list", new ArrayList(bibtexAdapter.getGroups()));
+                startActivityForResult(intent, SELECT_GROUP_REQUEST);
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -298,7 +314,7 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
     public void onNewIntent(Intent intent) { //Is called when a search is performed
         if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
             filter = intent.getStringExtra(SearchManager.QUERY);
-            filterAndSortInBackground(filter, sortMode);
+            filterAndSortInBackground(filter, sortMode, group);
         }
             //Unocus the searchView and close the keyboard
         if(searchView != null)
@@ -811,8 +827,15 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     bibtexAdapter.notifyDataSetChanged();
                     bibtexAdapter.onPostBackgroundOperation();
 
-                    filterAndSortInBackground(filter, sortMode);
+                    filterAndSortInBackground(filter, sortMode, group);
                     bibtexAdapter.prepareForFiltering();
+
+                    if(bibtexAdapter.getGroups().isEmpty() && menu != null){
+                        menu.findItem(R.id.menu_groups).setVisible(false);
+                    }
+                    if(!bibtexAdapter.getGroups().isEmpty() && menu != null){
+                        menu.findItem(R.id.menu_groups).setVisible(true);
+                    }
                 }
                 else
                 {
@@ -825,7 +848,8 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
         
     private void resetFilter() {
         if(bibtexAdapter!=null)
-            bibtexAdapter.filterAndSortInBackground("", null);
+            bibtexAdapter.filterAndSortInBackground("", sortMode, group);
+        filter = "";
     }
     
     private void sortInBackground(BibtexAdapter.SortMode sortMode) 
@@ -834,11 +858,11 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             bibtexAdapter.sortInBackground(sortMode);
     }
 
-    private void filterAndSortInBackground(String filter, BibtexAdapter.SortMode sortMode)
+    private void filterAndSortInBackground(String filter, BibtexAdapter.SortMode sortMode, String group)
     {
         if(bibtexAdapter!=null) 
         {
-            bibtexAdapter.filterAndSortInBackground(filter, sortMode);
+            bibtexAdapter.filterAndSortInBackground(filter, sortMode, group);
         }
     }
     
@@ -892,6 +916,22 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
                     grantUriPermission(getPackageName(), treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);//Not sure this is necessary
                     getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION );
                     analyseLibraryFolderRoot(treeUri);
+                }
+                break;
+            case SELECT_GROUP_REQUEST:
+                if(resultCode==Activity.RESULT_OK)
+                {
+                    group = intent.getStringExtra("group");
+                    filterAndSortInBackground(filter, sortMode, group);
+                    TextView group_titlebar = (TextView) findViewById(R.id.group_titlebar);
+
+                    if (bibtexAdapter.getGroups().contains(group)) {
+                        group_titlebar.setText(group);
+                        group_titlebar.setVisibility(View.VISIBLE);
+                    } else {
+                        group_titlebar.setText("");
+                        group_titlebar.setVisibility(View.GONE);
+                    }
                 }
         }
     }
