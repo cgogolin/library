@@ -282,7 +282,14 @@ public class BibtexAdapter extends BaseAdapter {
                 separatorComparator = new Comparator<BibtexEntry>() {
                     @Override
                     public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return entry1.getAuthor().substring(0,1).compareTo(entry2.getAuthor().substring(0,1));
+                        if(entry1.getAuthor().length() == 0 && entry1.getAuthor().length() == 0)
+                            return 0;
+                        else if(entry1.getAuthor().length() == 0)
+                            return -1;
+                        else if(entry2.getAuthor().length() == 0)
+                            return 1;
+                        else
+                            return entry1.getAuthor().substring(0,1).compareTo(entry2.getAuthor().substring(0,1));
                     }
                 };
                 break;
@@ -310,7 +317,14 @@ public class BibtexAdapter extends BaseAdapter {
                 separatorComparator = new Comparator<BibtexEntry>() {
                     @Override
                     public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return entry1.getTitle().substring(0,1).compareTo(entry2.getTitle().substring(0,1));
+                        if(entry1.getTitle().length() == 0 && entry1.getTitle().length() == 0)
+                            return 0;
+                        else if(entry1.getTitle().length() == 0)
+                            return -1;
+                        else if(entry2.getTitle().length() == 0)
+                            return 1;
+                        else                  
+                            return entry1.getTitle().substring(0,1).compareTo(entry2.getTitle().substring(0,1));
                     }
                 };
 
