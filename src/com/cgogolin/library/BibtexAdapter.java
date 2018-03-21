@@ -411,13 +411,19 @@ public class BibtexAdapter extends BaseAdapter {
                             separatorText = entry.getYear();
                             break;
                         case Author:
-                            separatorText = entry.getAuthor().substring(0, 1);
+                            if(entry.getAuthor().length()>0)
+                                separatorText = entry.getAuthor().substring(0, 1);
+                            else
+                                separatorText = "";
                             break;
                         case Journal:
                             separatorText = entry.getJournal();
                             break;
                         case Title:
-                            separatorText = entry.getTitle().substring(0, 1);
+                            if(entry.getTitle().length()>0)
+                                separatorText = entry.getTitle().substring(0, 1);
+                            else
+                                separatorText = "";
                             break;
                     }
                 }
