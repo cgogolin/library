@@ -59,6 +59,7 @@
        android:layout_height="wrap_content" 
        android:textSize="13sp"
        android:textColor="#505050"
+       android:paddingBottom="2sp"	   
        >
     </TextView>
     <!--  <TextView

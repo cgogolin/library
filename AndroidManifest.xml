@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	  package="com.cgogolin.library"
-	  android:versionCode="56"
-	  android:versionName="5.5x">
+	  android:versionCode="60"
+	  android:versionName="6.0">
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-sdk android:minSdkVersion="11" android:targetSdkVersion="23" />
