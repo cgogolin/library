@@ -784,11 +784,12 @@ public class Library extends AppCompatActivity implements SearchView.OnQueryText
             protected Void doInBackground(String... libraryPathString) {
                 if (bibtexAdapter == null)
                 {
-                    Uri libraryUri = Uri.parse(libraryPathString[0]);
-                    File libraryFile = new File(Uri.decode(libraryUri.getEncodedPath()));
                     InputStream inputStream = null;
                     try
                     {
+                        Uri libraryUri = Uri.parse(libraryPathString[0]);
+                        File libraryFile = new File(Uri.decode(libraryUri.getEncodedPath()));
+                        
                         if(libraryFile != null && libraryFile.isFile())
                         {
                             inputStream = new FileInputStream(libraryFile);
