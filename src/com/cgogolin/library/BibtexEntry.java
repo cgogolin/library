@@ -30,8 +30,8 @@ public class BibtexEntry extends BaseBibtexEntry {
     }
         public List<String> getUrls(Context context) {
         String url = getUrl();
-        String howpublished = getHowpublished();
-        if ( !url.equals("") && !howpublished.equals("") ) url+=howpublished;
+        if ( url.equals("") )
+            url=getHowpublished();        
         String eprint = getArxivId().equals("") ? getEprint() : getArxivId();
         if ( url.equals("") && eprint.equals("") ) return null;
         List<String> urls = new ArrayList<String>();
