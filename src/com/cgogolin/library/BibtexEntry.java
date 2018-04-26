@@ -6,11 +6,14 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.regex.Pattern;
 
 public class BibtexEntry extends BaseBibtexEntry {
 
     private boolean extraInfoVisible = false;
-    
+    //For performance reasons, compile regexps once:
+    private static final Pattern authorCommaPattern = Pattern.compile(" *([^,]*) *,? *(.*) *");
+    private static final Pattern authorAndPattern = Pattern.compile(" and ");
     public BibtexEntry()
     {
         super();
@@ -58,8 +61,9 @@ public class BibtexEntry extends BaseBibtexEntry {
             return "";
     }
     public String getAuthorsFormated(Context context) {
-        String[] authors = getAuthor().split(" and ");
-        String[] editors = getEditor().split(" and ");
+        //use precompiled regex
+        String[] authors = authorAndPattern.split(getAuthor());
+        String[] editors = authorAndPattern.split(getEditor());
         String authorsString = "";
         boolean firstAuthor = true;
         for (String author : authors)
@@ -69,7 +73,9 @@ public class BibtexEntry extends BaseBibtexEntry {
                 authorsString +=", ";
             else
                 firstAuthor=false;
-            authorsString += author.trim().replaceAll(" *([^,]*) *,? *(.*) *","$2 $1").trim();
+            //apply regex twice to take care of "Last, Jr ,First" cases
+            //use precompiled regex
+            authorsString += authorCommaPattern.matcher(authorCommaPattern.matcher(author.trim()).replaceAll("$2 $1").trim()).replaceAll("$2 $1").trim();
         }
         boolean firstEditor = true;
         for (String author : editors)
@@ -82,7 +88,9 @@ public class BibtexEntry extends BaseBibtexEntry {
                 authorsString += " "+context.getString(R.string.edited_by)+" ";
                 firstEditor=false;
             }
-            authorsString += author.trim().replaceAll(" *([^,]*) *,? *(.*) *","$2 $1").trim();
+            //apply regex twice to take care of "Last, Jr ,First" cases
+            //use precompiled regex
+            authorsString += authorCommaPattern.matcher(authorCommaPattern.matcher(author.trim()).replaceAll("$2 $1").trim()).replaceAll("$2 $1").trim();
         }
         return authorsString.trim();
     }
