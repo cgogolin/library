@@ -201,7 +201,7 @@ public class BibtexParser {
                     //Add the bibtex tag to the entry
                 entry.put(name, value);
             }
-            String[] authors = entry.getRawAuthor().split("and");
+            String[] authors = entry.getRawAuthor().split(" and ");
             entry.put("authorSortKey",parseAuthor(authors[0].trim()));
             BibtexEntryList.add(entry);
         }
