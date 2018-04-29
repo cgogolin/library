@@ -120,6 +120,8 @@ public class BaseBibtexEntry {
     public String getAuthor() {
         return saveGetPretty("author");
     }
+    public String getRawAuthor() { return saveGet("author"); }
+    public String getAuthorSortKey() { return saveGet("authorSortKey"); }
     public String getEditor() {
         return saveGetPretty("editor");
     }

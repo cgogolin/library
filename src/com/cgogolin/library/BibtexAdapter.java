@@ -276,20 +276,20 @@ public class BibtexAdapter extends BaseAdapter {
                 Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
                         @Override
                         public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                            return  (entry1.getAuthor()+entry1.getNumberInFile()).compareTo(entry2.getAuthor()+entry2.getNumberInFile());
+                            return  (entry1.getAuthorSortKey()+entry1.getNumberInFile()).compareTo(entry2.getAuthorSortKey()+entry2.getNumberInFile());
                         }
                     });
                 separatorComparator = new Comparator<BibtexEntry>() {
                     @Override
                     public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        if(entry1.getAuthor().length() == 0 && entry1.getAuthor().length() == 0)
+                        if(entry1.getAuthorSortKey().length() == 0 && entry1.getAuthorSortKey().length() == 0)
                             return 0;
-                        else if(entry1.getAuthor().length() == 0)
+                        else if(entry1.getAuthorSortKey().length() == 0)
                             return -1;
-                        else if(entry2.getAuthor().length() == 0)
+                        else if(entry2.getAuthorSortKey().length() == 0)
                             return 1;
                         else
-                            return entry1.getAuthor().substring(0,1).compareTo(entry2.getAuthor().substring(0,1));
+                            return entry1.getAuthorSortKey().substring(0,1).compareTo(entry2.getAuthorSortKey().substring(0,1));
                     }
                 };
                 break;
@@ -411,8 +411,8 @@ public class BibtexAdapter extends BaseAdapter {
                             separatorText = entry.getYear();
                             break;
                         case Author:
-                            if(entry.getAuthor().length()>0)
-                                separatorText = entry.getAuthor().substring(0, 1);
+                            if(entry.getAuthorSortKey().length()>0)
+                                separatorText = entry.getAuthorSortKey().substring(0, 1);
                             else
                                 separatorText = "";
                             break;
