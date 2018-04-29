@@ -8,7 +8,7 @@ import java.util.Arrays;
 public class BaseBibtexEntry {
 
     private static LatexPrettyPrinter latexPrettyPrinter;
-    
+
     private HashMap<String,String> entryMap;
     private HashMap<String,String> latexPrettyPrinterEntryMap;
 
@@ -18,7 +18,7 @@ public class BaseBibtexEntry {
         entryMap = new HashMap<String,String>();
         latexPrettyPrinterEntryMap = new HashMap<String,String>();
     }
-    
+
     public void put(String name, String value) {
         entryMap.put(name, value);
     }
@@ -34,7 +34,7 @@ public class BaseBibtexEntry {
             latexPrettyPrinterEntryMap.put(name,latexPrettyPrinter.parse(entryMap.get(name)));
         return latexPrettyPrinterEntryMap.get(name);
     }
-    
+
     public String getLabel() {
         return saveGet("label");
     }
@@ -70,7 +70,7 @@ public class BaseBibtexEntry {
             //Furthermore we assume that '\_' is an escape sequence for '_'.
         if ( getFile().equals("") ) return null;
         String[] rawFileString = getFile().split(";");
-        for (int i = 0; i < rawFileString.length; i++) { 
+        for (int i = 0; i < rawFileString.length; i++) {
             int start = rawFileString[i].indexOf(':')+1;
             int end = (rawFileString[i].lastIndexOf(':') != rawFileString[i].indexOf(':')) ? rawFileString[i].lastIndexOf(':') : rawFileString[i].length();
             rawFileString[i] = rawFileString[i].substring(start,end).replace("\\_","_");
@@ -97,31 +97,14 @@ public class BaseBibtexEntry {
         output += "\n}";
         return output;
     }
-    
+
         //Functions above output raw values, functions below use the LaTeX pretty printer
-    
-    private void generateStringBlob()
-    {
-        String blob = "";
-//            for (String key : entryMap.keySet()) blob = blob+""+key+"="+entryMap.get(key)+" ";
-        for (String key : new String[]{"label","documenttyp","author","editor","eprint","primaryclass","doi","journal","number","pages","title","volume","month","year","archiveprefix","arxivid","keywords","mendeley-tags","url"} )
-        {
-            if (entryMap.containsKey(key))
-                blob = blob+""+key+"="+entryMap.get(key)+" ";
-        }
-        blob=blob+" "+latexPrettyPrinter.parse(blob);
-        latexPrettyPrinterEntryMap.put("stringblob",blob);
-    }
-    
-    public synchronized String getStringBlob() {
-        if (!latexPrettyPrinterEntryMap.containsKey("stringblob")) generateStringBlob();
-        return latexPrettyPrinterEntryMap.get("stringblob");
-    }
     public String getAuthor() {
         return saveGetPretty("author");
     }
-    public String getRawAuthor() { return saveGet("author"); }
-    public String getAuthorSortKey() { return saveGet("authorSortKey"); }
+    public String getRawAuthor() {
+        return saveGet("author");
+    }
     public String getEditor() {
         return saveGetPretty("editor");
     }
