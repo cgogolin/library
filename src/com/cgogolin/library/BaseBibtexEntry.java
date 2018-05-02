@@ -270,9 +270,9 @@ public class BaseBibtexEntry {
         authorParts[VON] = rawAuthorString.substring(vonStart, vonEnd).trim();
         authorParts[LAST] =rawAuthorString.substring(lastStart, lastEnd).trim();
         authorParts[JR] = rawAuthorString.substring(jrStart, jrEnd).trim();
-        String authorSortKey = authorParts[LAST] + authorParts[FIRST] + authorParts[JR];
+        String authorSortKey = authorParts[LAST] + " " + authorParts[FIRST] + " " + authorParts[JR];
 
-        authorSortKey = authorSortKey.toLowerCase();
+        authorSortKey = authorSortKey.toUpperCase();
         put("authorSortKey", LatexPrettyPrinter.parse(authorSortKey));
 
             //In case these are ever needed individually we can save them here and get them with the methors below (if this is activated this functino should be renamed)
