@@ -49,7 +49,7 @@
     <string name="dialog_newpermissions_message">Aufgrund eines Fehlers in einigen Versionen von Android muss Library geschlossen und neu gestartet werden um die soeben erteilten Berechtigungen tatsächlich zu erhalten.</string>
     <string name="dialog_set_library_root_title">Hilf Library beim finden von Dateien</string>
     <string name="dialog_set_library_root_message">In externe erstellte BibTeX-Dateien zeigen die Dateipfade üblicherweise auf die Dateien auf dem Gerät auf dem sie erstellt wurden. Library muss daher wissen wo sich diese Dateien auf diesem Gerät befinden. Bitte wähle das Verzeichnis in dem sich die Dateien in der BibTeX-Bibliothek befinden.\nBeispiel:\nWenn die Pfade in der BibTeX-Datei wie folgt aussehen\n\n\t/home/benutzer/meine_pdfs/ordner1/datei1.pdf\n\t/home/benutzer/meine_pdfs/ordner1/datei2.pdf\n\t/home/benutzer/meine_pdfs/ordner2/datei3.pdf\n\t...\n\nauf diesem Gerät die Dateien aber unter\n\n\t/sdcard/meine_pdfs/ordner1/datei1.pdf\n\t/sdcard/meine_pdfs/ordner1/datei2.pdf\n\t/sdcard/meine_pdfs/ordner2/datei3.pdf\n\t...\n\nliegen, dann wähle bitte /sdcard/meine_pdfs/ im folgenden Dialog.</string>
-    <string name="dialog_set_library_root_message_addition_on_upgrade">Library nutzt jetyt eine neue Method zum lokalisieren und öffnen von Dateien!</string>
+    <string name="dialog_set_library_root_message_addition_on_upgrade">Library nutzt jetzt eine neue Method zum lokalisieren und öffnen von Dateien!</string>
     <string name="dialog_set_library_root_select">Ordner wählen</string>
     <string name="dialog_analyse_library_root_title">Bitte warten</string>
     <string name="dialog_analyse_library_root_title_failed">Datei nicht gefunden</string>
@@ -57,5 +57,5 @@
     <string name="dialog_analyse_library_root_message">Library versucht nun die gewählte Datei im gewählten Ordner zu finden. Dies kann eine Weile dauern da die Funktion DocumentFile.findFile() unter Android sehr langsam sein kann... Dies ist nur beim öffnen der ersten Datei nötig.</string>
     <string name="dialog_analyse_library_root_message_success" formatted="false">Library hat die Datei %s im Ordner %s unter der Uri %s gefunden.</string>
     <string name="dialog_analyse_library_root_message_failed" formatted="false">Library konnte die Datei %s nicht im Ordner %s finden.</string>
-    <string name="menu_groups">Groupen</string>
+    <string name="menu_groups">Gruppen</string>
 </resources>
