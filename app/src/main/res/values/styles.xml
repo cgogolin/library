@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <style name="LibraryTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-    <item name="colorPrimary">@color/primary</item>
-    <item name="colorPrimaryDark">@color/primary_dark</item>
-    <item name="colorAccent">@color/accent</item>
-    <item name="autoCompleteTextViewStyle">@style/cursorColor</item>
+  <style name="LibraryTheme" parent="android:Theme.Material.Light.DarkActionBar">
+    <item name="android:colorPrimary">@color/primary</item>
+    <item name="android:colorPrimaryDark">@color/primary_dark</item>
+    <item name="android:colorAccent">@color/accent</item>
+    <item name="android:autoCompleteTextViewStyle">@style/cursorColor</item>
   </style>
-  <style name="cursorColor" parent="Widget.AppCompat.AutoCompleteTextView">
+  <style name="cursorColor" parent="android:Widget.AutoCompleteTextView">
     <!--This trick is taken from http://stackoverflow.com/questions/27730253/how-to-style-the-cursor-color-of-searchview-under-appcompat. Unfortunately it does not seem to be possible to also style the text selection marker for only this view differently, only colorAccent can be used to change it globally...-->
     <item name="android:textCursorDrawable">@drawable/cursor</item>
   </style>

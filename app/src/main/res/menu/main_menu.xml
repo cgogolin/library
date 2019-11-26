@@ -1,53 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-      xmlns:app="http://schemas.android.com/apk/res-auto">
-  <item android:id="@+id/menu_search"
-        android:title="@string/menu_search"
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_search"
+        android:actionViewClass="android.widget.SearchView"
         android:icon="@drawable/ic_search_white_24dp"
-	app:showAsAction="always"
-	app:actionViewClass="android.support.v7.widget.SearchView"
-	android:inputType="textFilter"
-	/>
-    <item android:id="@+id/menu_sort"
-	  android:title="@string/menu_sort" 
-	  android:showAsAction="never"
-	  android:icon="@drawable/ic_sort_white_24dp"
-	  >
-      <menu>
-	<item android:id="@+id/menu_sort_by_none"
-	      android:title="@string/menu_sort_by_none"
-	      android:checkable="true"
-	      />
-	<item android:id="@+id/menu_sort_by_date"
-	      android:title="@string/menu_sort_by_date"
-	      android:checkable="true"
-	      />
-	<item android:id="@+id/menu_sort_by_author"
-	      android:title="@string/menu_sort_by_author"
-	      android:checkable="true"
-	      />
-	<item android:id="@+id/menu_sort_by_journal"
-	      android:title="@string/menu_sort_by_journal"
-	      android:checkable="true"
-	      />
-	<item android:id="@+id/menu_sort_by_title"
-	      android:title="@string/menu_sort_by_title"
-	      android:checkable="true"
-	      />
-      </menu>
+        android:inputType="textFilter"
+        android:showAsAction="ifRoom"
+        android:title="@string/menu_search" />
+    <item
+        android:id="@+id/menu_sort"
+        android:icon="@drawable/ic_sort_white_24dp"
+        android:showAsAction="never"
+        android:title="@string/menu_sort">
+        <menu>
+            <item
+                android:id="@+id/menu_sort_by_none"
+                android:checkable="true"
+                android:title="@string/menu_sort_by_none" />
+            <item
+                android:id="@+id/menu_sort_by_date"
+                android:checkable="true"
+                android:title="@string/menu_sort_by_date" />
+            <item
+                android:id="@+id/menu_sort_by_author"
+                android:checkable="true"
+                android:title="@string/menu_sort_by_author" />
+            <item
+                android:id="@+id/menu_sort_by_journal"
+                android:checkable="true"
+                android:title="@string/menu_sort_by_journal" />
+            <item
+                android:id="@+id/menu_sort_by_title"
+                android:checkable="true"
+                android:title="@string/menu_sort_by_title" />
+        </menu>
     </item>
-        <item
-          android:id="@+id/menu_groups"
-          android:title="@string/menu_groups"
-          android:visible="false"
-          app:showAsAction="never"
-          />
-        <item android:id="@+id/menu_set_library_path"
-	  android:title="@string/menu_set_library_path" 
-	  android:showAsAction="never"
-	  />
-    <item android:id="@+id/menu_set_path_conversion"
-	  android:title="@string/menu_set_path_conversion" 
-	  android:showAsAction="never"
-	  />
+    <item
+        android:id="@+id/menu_groups"
+        android:showAsAction="never"
+        android:title="@string/menu_groups"
+        android:visible="false" />
+    <item
+        android:id="@+id/menu_set_library_path"
+        android:showAsAction="never"
+        android:title="@string/menu_set_library_path" />
+    <item
+        android:id="@+id/menu_set_path_conversion"
+        android:showAsAction="never"
+        android:title="@string/menu_set_path_conversion" />
 </menu>

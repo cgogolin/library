@@ -1,83 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	      android:id="@+id/LinearLayout01"
-	      android:layout_width="fill_parent"
-	      android:layout_height="wrap_content"
-	      android:orientation="vertical"
-	      >
-  <TextView
-     android:id="@+id/separator"
-     android:layout_width="fill_parent"
-     android:layout_height="fill_parent"
-     android:gravity="left"
-     android:textSize="15sp"
-     android:textColor="#ffffff"
-     android:background="@color/primary"
-     android:textStyle="bold"
-     android:paddingLeft="10sp"
-     android:paddingTop="2sp"
-     android:paddingBottom="2sp"
-     />
-  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		android:id="@+id/LinearLayout01"
-		android:layout_width="fill_parent"
-		android:layout_height="wrap_content"
-		android:paddingLeft="10sp"
-		android:paddingRight="10sp"
-		android:orientation="vertical"
-		android:paddingTop="2sp"
-		>
-    <TextView 
-       android:id="@+id/bibtex_info"
-       android:layout_width="fill_parent"    
-       android:layout_height="fill_parent"
-       android:gravity="center"
-       android:textSize="10sp"
-       android:textColor="#808080"
-       android:paddingTop="30sp"
-       android:paddingBottom="30sp"
-       >
-    </TextView>
-    <TextView 
-       android:id="@+id/bibtex_title"
-       android:layout_width="fill_parent" 	    
-       android:layout_height="wrap_content"
-       android:textSize="15sp"
-       android:textStyle="bold"
-       >
-    </TextView>
-    <TextView 
-       android:id="@+id/bibtex_authors"
-       android:layout_width="fill_parent" 	    
-       android:layout_height="wrap_content" 
-       android:textSize="15sp"
-       >
-    </TextView>
-    <TextView 
-       android:id="@+id/bibtex_journal"
-       android:layout_width="fill_parent" 	    
-       android:layout_height="wrap_content" 
-       android:textSize="13sp"
-       android:textColor="#505050"
-       android:paddingBottom="2sp"	   
-       >
-    </TextView>
-    <!--  <TextView
-	  android:id="@+id/bibtex_file"
-	  android:layout_width="fill_parent" 	    
-	  android:layout_height="wrap_content"
-	  android:textSize="16sp"
-	  android:textColor="#505050"
-	  >
-	  </TextView>-->
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		  android:id="@+id/LinearLayout02"
-		  android:layout_width="fill_parent"
-		  android:layout_height="wrap_content"
-		  android:paddingLeft="0sp"
-		  android:paddingRight="0sp"
-		  android:orientation="vertical"
-		  >
-    </LinearLayout> 
-  </LinearLayout>
+    android:id="@+id/LinearLayout01"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/separator"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@color/primary"
+        android:gravity="start"
+        android:paddingStart="10sp"
+        android:paddingEnd="10sp"
+        android:paddingTop="2sp"
+        android:paddingBottom="2sp"
+        android:textColor="#ffffff"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/LinearLayout03"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingLeft="10sp"
+        android:paddingTop="2sp"
+        android:paddingRight="10sp">
+
+        <TextView
+            android:id="@+id/bibtex_info"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:gravity="center"
+            android:paddingTop="30sp"
+            android:paddingBottom="30sp"
+            android:textColor="#808080"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/bibtex_title"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/bibtex_authors"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/bibtex_journal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="2sp"
+            android:textColor="#505050"
+            android:textSize="13sp" />
+        <!--  <TextView
+          android:id="@+id/bibtex_file"
+          android:layout_width="fill_parent"
+          android:layout_height="wrap_content"
+          android:textSize="16sp"
+          android:textColor="#505050"
+          >
+          </TextView>-->
+        <LinearLayout
+            android:id="@+id/LinearLayout02"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="0sp"
+            android:paddingRight="0sp" />
+    </LinearLayout>
 </LinearLayout>

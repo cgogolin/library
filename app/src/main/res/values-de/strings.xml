@@ -16,7 +16,7 @@
     <string name="file">Datei</string>
     <string name="url">url</string>
     <string name="doi">doi</string>
-    <string name="share">Teilen...</string>
+    <string name="share">Teilen&#8230;</string>
     <string name="no_application_to_view_files_of_type">Keine Anwendung gefunden zum Betrachten von Dateien des Typs:</string>
     <string name="couldnt_find_file">Datei nicht gefunden:</string>
     <string name="path_conversion_hint">Vielleicht ist die Pfad-Umwandlung nicht korrekt eingestellt?</string>
@@ -25,7 +25,6 @@
     <string name="please_enter_path_of_bibtex_library">Bitte Pfad oder uri der BibTeX-Datei angeben.</string>
     <string name="adapter_not_initialized">Adapter nicht initialisiert.</string>
     <string name="adapter_failed_to_intialized">Die gewählte BibTeX-Datei konnte nicht gelesen werden. Vielleicht sind der angegebene Pfad oder die uri nicht korrekt, oder die SD-Karte noch nicht lesbar?</string>
-    <string name="unable_to_find_file">Konnte Datei nicht finden:</string>
     <string name="io_exception_while_reading">IO-Ausnahme während des Lesens von</string>
     <string name="io_exception_while_closing">IO-Ausnahme während des Schließens des Datenstromes nach</string>
     <string name="files">Dateien</string>

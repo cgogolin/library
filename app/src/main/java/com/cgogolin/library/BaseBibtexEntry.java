@@ -1,53 +1,55 @@
 package com.cgogolin.library;
 
-import java.util.HashMap;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 public class BaseBibtexEntry {
 
     private static LatexPrettyPrinter latexPrettyPrinter;
 
-    private HashMap<String,String> entryMap;
-    private HashMap<String,String> latexPrettyPrinterEntryMap;
+    private HashMap<String, String> entryMap;
+    private HashMap<String, String> latexPrettyPrinterEntryMap;
 
-    public BaseBibtexEntry()
-    {
+    public BaseBibtexEntry() {
         super();
-        entryMap = new HashMap<String,String>();
-        latexPrettyPrinterEntryMap = new HashMap<String,String>();
+        entryMap = new HashMap<String, String>();
+        latexPrettyPrinterEntryMap = new HashMap<String, String>();
     }
 
     public void put(String name, String value) {
         entryMap.put(name, value);
     }
 
-    protected String saveGet(String name){
+    protected String saveGet(String name) {
         return (entryMap.containsKey(name) ? entryMap.get(name) : "");
     }
 
-    private String saveGetPretty(String name){
+    private String saveGetPretty(String name) {
         if (!entryMap.containsKey(name))
             return "";
         if (!latexPrettyPrinterEntryMap.containsKey(name))
-            latexPrettyPrinterEntryMap.put(name,latexPrettyPrinter.parse(entryMap.get(name)));
+            latexPrettyPrinterEntryMap.put(name, LatexPrettyPrinter.parse(entryMap.get(name)));
         return latexPrettyPrinterEntryMap.get(name);
     }
 
     public String getLabel() {
         return saveGet("label");
     }
+
     public String getDocumentType() {
         return saveGet("documenttyp");
     }
+
     public String getGroup() {
         return saveGet("groups");
     }
-    public List<String> getGroups(){
+
+    public List<String> getGroups() {
         //We assume the following format:
         //{group1, group2...}
-        if ( getGroup().equals("") ) return null;
+        if (getGroup().equals("")) return null;
         String[] rawGroupString = getGroup().split(",");
         for (int i = 0; i < rawGroupString.length; i++) {
             rawGroupString[i] = rawGroupString[i].trim();
@@ -55,73 +57,80 @@ public class BaseBibtexEntry {
         List<String> groups = new ArrayList<String>(Arrays.asList(rawGroupString));
         return groups;
     }
+
     public String getFile() {
         return saveGet("file");
     }
+
     public List<String> getFiles() {
-            //We assume the either of the following formats:
-            //{:path1/file1.end1:end1;:path2/file2.end1:end2;...}
-            //{path1/file1.end1:end1;path2/file2.end1:end2;...}
-            //{path1/file1.end1;path2/file2.end1;...}
-            //{:path1\file1.end1:end1;:path2\file2.end1:end2;...}
-            //{path1\file1.end1:end1;path2\file2.end1:end2;...}
-            //{path1\file1.end1;path2\file2.end1;...}
-            //whereby path can contains Windows drive letters such as 'c:\'.
-            //Furthermore we assume that '\_' is an escape sequence for '_'.
-        if ( getFile().equals("") ) return null;
+        //We assume the either of the following formats:
+        //{:path1/file1.end1:end1;:path2/file2.end1:end2;...}
+        //{path1/file1.end1:end1;path2/file2.end1:end2;...}
+        //{path1/file1.end1;path2/file2.end1;...}
+        //{:path1\file1.end1:end1;:path2\file2.end1:end2;...}
+        //{path1\file1.end1:end1;path2\file2.end1:end2;...}
+        //{path1\file1.end1;path2\file2.end1;...}
+        //whereby path can contains Windows drive letters such as 'c:\'.
+        //Furthermore we assume that '\_' is an escape sequence for '_'.
+        if (getFile().equals("")) return null;
         String[] rawFileString = getFile().split(";");
         for (int i = 0; i < rawFileString.length; i++) {
-            int start = rawFileString[i].indexOf(':')+1;
+            int start = rawFileString[i].indexOf(':') + 1;
             int end = (rawFileString[i].lastIndexOf(':') != rawFileString[i].indexOf(':')) ? rawFileString[i].lastIndexOf(':') : rawFileString[i].length();
-            rawFileString[i] = rawFileString[i].substring(start,end).replace("\\_","_");
+            rawFileString[i] = rawFileString[i].substring(start, end).replace("\\_", "_");
         }
         List<String> files = new ArrayList<String>(Arrays.asList(rawFileString));
         return files;
     }
+
     public String getUrl() {
         return saveGet("url");
     }
+
     public String getDoi() {
         return saveGet("doi");
     }
+
     public String getArchivePrefix() {
         return saveGet("archiveprefix");
     }
+
     public String getArxivId() {
         return saveGet("arxivid");
     }
+
     public String getEntryAsString() {
-        String output = "@"+getDocumentType()+"{"+getLabel();
+        String output = "@" + getDocumentType() + "{" + getLabel();
         for (String key : entryMap.keySet())
-            output += ",\n"+key+" = {"+entryMap.get(key)+"}";
+            output += ",\n" + key + " = {" + entryMap.get(key) + "}";
         output += "\n}";
         return output;
     }
 
-        //Functions above output raw values, functions below use the LaTeX pretty printer
-    private void generateStringBlob()
-    {
+    //Functions above output raw values, functions below use the LaTeX pretty printer
+    private void generateStringBlob() {
         String blob = "";
-        for (String key : new String[]{"label","documenttyp","author","editor","eprint","primaryclass","doi","journal","number","pages","title","volume","month","year","archiveprefix","arxivid","keywords","mendeley-tags","url"} )
-        {
+        for (String key : new String[]{"label", "documenttyp", "author", "editor", "eprint", "primaryclass", "doi", "journal", "number", "pages", "title", "volume", "month", "year", "archiveprefix", "arxivid", "keywords", "mendeley-tags", "url"}) {
             if (entryMap.containsKey(key))
-                blob = blob+""+key+"="+entryMap.get(key)+" ";
+                blob = blob + "" + key + "=" + entryMap.get(key) + " ";
         }
-        blob=blob+" "+latexPrettyPrinter.parse(blob);
-        latexPrettyPrinterEntryMap.put("stringblob",blob);
+        blob = blob + " " + LatexPrettyPrinter.parse(blob);
+        latexPrettyPrinterEntryMap.put("stringblob", blob);
     }
+
     public synchronized String getStringBlob() {
         if (!latexPrettyPrinterEntryMap.containsKey("stringblob")) generateStringBlob();
         return latexPrettyPrinterEntryMap.get("stringblob");
     }
+
     public void generateAuthorSortKey() {
         String[] authors = getRawAuthor().split(" and ");
         String rawAuthorString = authors[0]; //We only sort according to the first authors, which should be enugh for all practical puposes
 
-                // Based on explanations from Tame the BeaST: http://tug.ctan.org/info/bibtex/tamethebeast/ttb_en.pdf
+        // Based on explanations from Tame the BeaST: http://tug.ctan.org/info/bibtex/tamethebeast/ttb_en.pdf
         if (rawAuthorString.isEmpty()) return;
 
-        String[] authorParts = new String[] {"", "", "", ""};
+        String[] authorParts = new String[]{"", "", "", ""};
         final int FIRST = 0; //a few constants
         final int VON = 1;
         final int LAST = 2;
@@ -167,8 +176,8 @@ public class BaseBibtexEntry {
                     }
                     break;
                 case ' ': // add to space list only if depth zero, and before first comma
-                //case '-': // count as space
-                //case '~': // count as space
+                    //case '-': // count as space
+                    //case '~': // count as space
                     if (depth == 0 && specialChar == 0 && commaInd.size() == 0) {
                         spaceInd.add(i);
                         word = false;
@@ -260,7 +269,7 @@ public class BaseBibtexEntry {
                 }
             }
         }
-        if (part == FIRST){
+        if (part == FIRST) {
             firstEnd = newWordInd.size() > 1 ? spaceInd.get(newWordInd.size() - 2) : 0;
             lastStart = firstEnd;
         } else
@@ -268,22 +277,24 @@ public class BaseBibtexEntry {
 
         authorParts[FIRST] = rawAuthorString.substring(firstStart, firstEnd).trim();
         authorParts[VON] = rawAuthorString.substring(vonStart, vonEnd).trim();
-        authorParts[LAST] =rawAuthorString.substring(lastStart, lastEnd).trim();
+        authorParts[LAST] = rawAuthorString.substring(lastStart, lastEnd).trim();
         authorParts[JR] = rawAuthorString.substring(jrStart, jrEnd).trim();
         String authorSortKey = authorParts[LAST] + " " + authorParts[FIRST] + " " + authorParts[JR];
 
         authorSortKey = authorSortKey.toUpperCase();
         put("authorSortKey", LatexPrettyPrinter.parse(authorSortKey));
 
-            //In case these are ever needed individually we can save them here and get them with the methors below (if this is activated this functino should be renamed)
+        //In case these are ever needed individually we can save them here and get them with the methors below (if this is activated this functino should be renamed)
         // put("authorLast", authorParts[LAST]);
         // put("authorFirst", authorParts[FIRST]);
         // put("authorJR", authorParts[JR]);
     }
+
     public synchronized String getAuthorSortKey() {
         if (!entryMap.containsKey("authorSortKey")) generateAuthorSortKey();
         return saveGet("authorSortKey");
     }
+
     // public synchronized String getAuthorLast() {
     //     if (!entryMap.containsKey("authorLast")) generateAuthorSortKey();
     //     return saveGet("authorLast");
@@ -299,65 +310,109 @@ public class BaseBibtexEntry {
     public String getAuthor() {
         return saveGetPretty("author");
     }
+
     public String getRawAuthor() {
         return saveGet("author");
     }
+
     public String getEditor() {
         return saveGetPretty("editor");
     }
+
     public String getEprint() {
         return saveGet("eprint");
     }
+
     public String getPrimaryclass() {
         return saveGet("primaryclass");
     }
+
     public String getHowpublished() {
         return saveGet("howpublished");
     }
+
     public String getJournal() {
         return saveGetPretty("journal");
     }
+
     public String getNumber() {
         return saveGet("number");
     }
+
     public String getPages() {
         return saveGetPretty("pages");
     }
+
     public String getTitle() {
         return saveGetPretty("title");
     }
+
     public String getVolume() {
         return saveGet("volume");
     }
+
+    public String getDate(){
+        /*
+            Returns the date using the date field
+         */
+        return saveGet("date");
+    }
+
+
     public String getDay() {
         String day = saveGet("day");
-        if(day.length() == 2)
-            return day;
-        else if(day.length() == 1)
-            return "0"+day;
-        else
-            return "";
+        if (day.equals("")) {
+            String date = getDate();
+            if (date.length() >= 10){
+                day = date.substring(8, 10);
+            }
+        }
+        if (day.length() == 1)
+            return "0" + day;
+        return day;
     }
+
     public String getMonth() {
-        return saveGet("month");
+        String month = saveGet("month");
+
+        if (month.equals("")){
+            // Test if we can get the month from the date field
+            String date = getDate();
+            if (date.length() >= 7){
+                month = date.substring(5, 7);
+            }
+        }
+        return month;
     }
+
     public String getMonthNumeric() {
         String month = getMonth().trim().replaceAll("[^0-9a-zA-z]", "").toLowerCase();
-        if(month.equals("jan")) return "01";
-        if(month.equals("feb")) return "02";
-        if(month.equals("mar")) return "03";
-        if(month.equals("apr")) return "04";
-        if(month.equals("may")) return "05";
-        if(month.equals("jun")) return "06";
-        if(month.equals("jul")) return "07";
-        if(month.equals("aug")) return "08";
-        if(month.equals("sep")) return "09";
-        if(month.equals("oct")) return "10";
-        if(month.equals("nov")) return "11";
-        if(month.equals("dec")) return "12";
+        if (month.equals("jan")) return "01";
+        if (month.equals("feb")) return "02";
+        if (month.equals("mar")) return "03";
+        if (month.equals("apr")) return "04";
+        if (month.equals("may")) return "05";
+        if (month.equals("jun")) return "06";
+        if (month.equals("jul")) return "07";
+        if (month.equals("aug")) return "08";
+        if (month.equals("sep")) return "09";
+        if (month.equals("oct")) return "10";
+        if (month.equals("nov")) return "11";
+        if (month.equals("dec")) return "12";
         return "";
     }
+
     public String getYear() {
-        return saveGet("year");
+        String year = saveGet("year");
+
+        if (year.equals("")) {
+            // Test if we can get the year from the date field
+            String date = getDate();
+            if (date.length() >= 4){
+                year = date.substring(0, 4);
+            }
+        }
+
+        return year;
     }
 }
