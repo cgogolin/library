@@ -19,9 +19,12 @@ import android.view.animation.Transformation;
 import android.webkit.MimeTypeMap;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -336,6 +339,10 @@ public class BibtexAdapter extends BaseAdapter {
         }
     }
 
+    private void paintRankStar(ImageView starView, int color){
+        starView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);
+    }
+
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         final Context context = parent.getContext();
@@ -408,6 +415,31 @@ public class BibtexAdapter extends BaseAdapter {
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
 
+            ImageView readView = convertView.findViewById(R.id.bibtex_read);
+            if (entry.getReadStatus().equals("skimmed")){
+                readView.setColorFilter(ContextCompat.getColor(context, R.color.read_skimmed), android.graphics.PorterDuff.Mode.SRC_IN);
+            }
+            if (entry.getReadStatus().equals("read")){
+                readView.setColorFilter(ContextCompat.getColor(context, R.color.read_read), android.graphics.PorterDuff.Mode.SRC_IN);
+            }
+
+            int paintColor = ContextCompat.getColor(context, R.color.star_given);
+            switch(entry.getRanking()){
+                case 5:
+                    paintRankStar(convertView.findViewById(R.id.bibtex_start5), paintColor);
+                case 4:
+                    paintRankStar(convertView.findViewById(R.id.bibtex_start4), paintColor);
+                case 3:
+                    paintRankStar(convertView.findViewById(R.id.bibtex_start3), paintColor);
+                case 2:
+                    paintRankStar(convertView.findViewById(R.id.bibtex_start2), paintColor);
+                case 1:
+                    paintRankStar(convertView.findViewById(R.id.bibtex_start1), paintColor);
+
+                default:
+                    break;
+            }
+
             if (entry.extraInfoVisible())
                 makeExtraInfoVisible(position, convertView, context, false);
             else
@@ -469,14 +501,17 @@ public class BibtexAdapter extends BaseAdapter {
         BibtexEntry entry = getItem(position);
         entry.setExtraInfoVisible(true);
 
-        LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams buttonLayoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 1);
 
+        // FIXME: are these really needed?
+        /*
         final TextView doiTV = new TextView(context);
         setTextViewAppearance(doiTV, entry.getDoiFormated(context));
         extraInfo.addView(doiTV);
         final TextView arxivTV = new TextView(context);
         setTextViewAppearance(arxivTV, entry.getEprintFormated());
         extraInfo.addView(arxivTV);
+         */
 
         //Read the Files list from the BibtexEntry
         List<String> associatedFilesList = entry.getFiles();
@@ -602,7 +637,7 @@ public class BibtexAdapter extends BaseAdapter {
                     return true;
                 }
             };
-            marginAnimation.setDuration(200);
+            marginAnimation.setDuration(100);
             extraInfo.startAnimation(marginAnimation);
         }
     }

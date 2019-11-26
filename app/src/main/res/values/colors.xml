@@ -4,4 +4,11 @@
   <color name="primary">#FFCC0000</color>
   <color name="primary_dark">#FF990000</color>
   <color name="cursor">#FFFFFFFF</color>
+
+  <color name="read_default">#aaaaaa</color>
+  <color name="read_skimmed">#FF9800</color>
+  <color name="read_read">#4CAF50</color>
+
+  <color name="star_default">#cccccc</color>
+  <color name="star_given">#FFEB3B</color>
 </resources>

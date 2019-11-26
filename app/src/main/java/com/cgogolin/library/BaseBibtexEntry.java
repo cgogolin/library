@@ -332,7 +332,11 @@ public class BaseBibtexEntry {
     }
 
     public String getJournal() {
-        return saveGetPretty("journal");
+        String journal = saveGetPretty("journal");
+        if (journal.equals("")){
+            return saveGetPretty("journaltitle");
+        }
+        return journal;
     }
 
     public String getNumber() {
@@ -414,5 +418,34 @@ public class BaseBibtexEntry {
         }
 
         return year;
+    }
+
+    public String getReadStatus(){
+        // Returns the read status, either "", "skimmed" or "read"
+        return saveGet("readstatus");
+
+    }
+
+    public int getRanking(){
+        // Get the ranking of the entry as a number between 0 and 5
+        String rank = saveGet("ranking");
+        if (rank.equals("")){
+            return 0;
+        }
+
+        if (!rank.startsWith("rank")){
+            return 0;
+        }
+
+        String rankId = rank.substring(4,5);
+        try{
+            int rankIdInt = Integer.parseInt(rankId);
+            if (rankIdInt > 5 || rankIdInt < 1){
+                return 0;
+            }
+            return rankIdInt;
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 }
