@@ -6,9 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class BaseBibtexEntry {
-
-    private static LatexPrettyPrinter latexPrettyPrinter;
-
     private HashMap<String, String> entryMap;
     private HashMap<String, String> latexPrettyPrinterEntryMap;
 
@@ -447,5 +444,47 @@ public class BaseBibtexEntry {
         } catch (NumberFormatException e) {
             return 0;
         }
+    }
+
+    public int getPriority(){
+        // returns the priority:
+        // * 0 not important
+        // * 1 highest
+        // * 2 modereate
+        // * 3 low
+        //
+        // this field shall be used as a "to read" indicator
+
+        String priority = saveGet("priority");
+        if (priority.equals(""))
+            return 0;
+        if (priority.startsWith("prio") && priority.length() == 5){
+            try {
+                switch(priority.charAt(4)) {
+                    case '1':
+                        return 1;
+                    case '2':
+                        return 2;
+                    case '3':
+                        return 3;
+                    default:
+                        return 0;
+                }
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        else{
+            return 0;
+        }
+    }
+
+    public boolean isRelevant(){
+        // returns true if the entry is relevant
+        String relevance = saveGet("relevance");
+        if (relevance.equals("relevant")){
+            return true;
+        }
+        return false;
     }
 }

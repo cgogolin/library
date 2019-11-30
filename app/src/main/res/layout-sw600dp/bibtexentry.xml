@@ -63,7 +63,7 @@
                 />
 
             <ImageView
-                android:id="@+id/bibtex_start1"
+                android:id="@+id/bibtex_star1"
                 android:layout_width="wrap_content"
                 android:layout_height="15sp"
                 android:paddingStart="0dp"
@@ -71,7 +71,7 @@
                 android:src="@drawable/ic_star_24dp"
                 android:tint="@color/star_default" />
             <ImageView
-                android:id="@+id/bibtex_start2"
+                android:id="@+id/bibtex_star2"
                 android:layout_width="wrap_content"
                 android:layout_height="15sp"
                 android:paddingStart="0dp"
@@ -79,7 +79,7 @@
                 android:src="@drawable/ic_star_24dp"
                 android:tint="@color/star_default" />
             <ImageView
-                android:id="@+id/bibtex_start3"
+                android:id="@+id/bibtex_star3"
                 android:layout_width="wrap_content"
                 android:layout_height="15sp"
                 android:paddingStart="0dp"
@@ -87,7 +87,7 @@
                 android:src="@drawable/ic_star_24dp"
                 android:tint="@color/star_default" />
             <ImageView
-                android:id="@+id/bibtex_start4"
+                android:id="@+id/bibtex_star4"
                 android:layout_width="wrap_content"
                 android:layout_height="15sp"
                 android:paddingStart="0dp"
@@ -95,13 +95,22 @@
                 android:src="@drawable/ic_star_24dp"
                 android:tint="@color/star_default" />
             <ImageView
-                android:id="@+id/bibtex_start5"
+                android:id="@+id/bibtex_star5"
                 android:layout_width="wrap_content"
                 android:layout_height="15sp"
                 android:paddingStart="0dp"
                 android:paddingEnd="0dp"
                 android:src="@drawable/ic_star_24dp"
                 android:tint="@color/star_default" />
+
+            <ImageView
+                android:id="@+id/bibtex_relevant"
+                android:layout_width="wrap_content"
+                android:layout_height="15sp"
+                android:src="@drawable/ic_relevant_24dp"
+                android:paddingStart="50sp"
+                android:visibility="invisible"
+                />
 
 
         </LinearLayout>

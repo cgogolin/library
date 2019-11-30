@@ -325,12 +325,22 @@ public class BibtexAdapter extends BaseAdapter {
         }
 
         if (displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
-            // FIXME: in this case, we do not want to display the icons!
             setTextViewAppearance(convertView.findViewById(R.id.separator), "");
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_title), "");
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_authors), "");
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_journal), "");
+
+            convertView.findViewById(R.id.bibtex_read).setVisibility(View.INVISIBLE);
+            convertView.findViewById(R.id.bibtex_relevant).setVisibility(View.INVISIBLE);
+
+            convertView.findViewById(R.id.bibtex_star1).setVisibility(View.INVISIBLE);
+            convertView.findViewById(R.id.bibtex_star2).setVisibility(View.INVISIBLE);
+            convertView.findViewById(R.id.bibtex_star3).setVisibility(View.INVISIBLE);
+            convertView.findViewById(R.id.bibtex_star4).setVisibility(View.INVISIBLE);
+            convertView.findViewById(R.id.bibtex_star5).setVisibility(View.INVISIBLE);
+
+
         } else {
             if (separatorComparator != null) {
                 switch (mRowStates[position]) {
@@ -383,7 +393,9 @@ public class BibtexAdapter extends BaseAdapter {
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_authors), entry.getAuthorsFormated(context));
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
 
+            // check read flag
             ImageView readView = convertView.findViewById(R.id.bibtex_read);
+            readView.setVisibility(View.VISIBLE);
             if (entry.getReadStatus().equals("skimmed")) {
                 readView.setColorFilter(ContextCompat.getColor(context, R.color.read_skimmed), android.graphics.PorterDuff.Mode.SRC_IN);
             } else if (entry.getReadStatus().equals("read")) {
@@ -392,27 +404,57 @@ public class BibtexAdapter extends BaseAdapter {
                 readView.setColorFilter(ContextCompat.getColor(context, R.color.read_default), android.graphics.PorterDuff.Mode.SRC_IN);
             }
 
+            // Check relevance flag
+            if (entry.isRelevant()){
+                convertView.findViewById(R.id.bibtex_relevant).setVisibility(View.VISIBLE);
+            }
+            else{
+                convertView.findViewById(R.id.bibtex_relevant).setVisibility(View.INVISIBLE);
+
+            }
+
+            // set background according to the priority
+            switch(entry.getPriority()){
+                case 0:
+                    convertView.setBackgroundColor(ContextCompat.getColor(context, R.color.prio_default));
+                    break;
+                case 1:
+                    convertView.setBackgroundColor(ContextCompat.getColor(context, R.color.prio_high));
+                    break;
+                case 2:
+                    convertView.setBackgroundColor(ContextCompat.getColor(context, R.color.prio_medium));
+                    break;
+                case 3:
+                    convertView.setBackgroundColor(ContextCompat.getColor(context, R.color.prio_low));
+                    break;
+            }
+
             // Need to reset to default, otherwise while scrolling you will have weird effects...
             // Other entries will get the star of previous entries or something like that.
-            paintRankStar(convertView.findViewById(R.id.bibtex_start1), ContextCompat.getColor(context, R.color.star_default));
-            paintRankStar(convertView.findViewById(R.id.bibtex_start2), ContextCompat.getColor(context, R.color.star_default));
-            paintRankStar(convertView.findViewById(R.id.bibtex_start3), ContextCompat.getColor(context, R.color.star_default));
-            paintRankStar(convertView.findViewById(R.id.bibtex_start4), ContextCompat.getColor(context, R.color.star_default));
-            paintRankStar(convertView.findViewById(R.id.bibtex_start5), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_star1), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_star2), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_star3), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_star4), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_star5), ContextCompat.getColor(context, R.color.star_default));
+            convertView.findViewById(R.id.bibtex_star1).setVisibility(View.VISIBLE);
+            convertView.findViewById(R.id.bibtex_star2).setVisibility(View.VISIBLE);
+            convertView.findViewById(R.id.bibtex_star3).setVisibility(View.VISIBLE);
+            convertView.findViewById(R.id.bibtex_star4).setVisibility(View.VISIBLE);
+            convertView.findViewById(R.id.bibtex_star5).setVisibility(View.VISIBLE);
 
 
             int paintColor = ContextCompat.getColor(context, R.color.star_given);
             switch (entry.getRanking()) {
                 case 5:
-                    paintRankStar(convertView.findViewById(R.id.bibtex_start5), paintColor);
+                    paintRankStar(convertView.findViewById(R.id.bibtex_star5), paintColor);
                 case 4:
-                    paintRankStar(convertView.findViewById(R.id.bibtex_start4), paintColor);
+                    paintRankStar(convertView.findViewById(R.id.bibtex_star4), paintColor);
                 case 3:
-                    paintRankStar(convertView.findViewById(R.id.bibtex_start3), paintColor);
+                    paintRankStar(convertView.findViewById(R.id.bibtex_star3), paintColor);
                 case 2:
-                    paintRankStar(convertView.findViewById(R.id.bibtex_start2), paintColor);
+                    paintRankStar(convertView.findViewById(R.id.bibtex_star2), paintColor);
                 case 1:
-                    paintRankStar(convertView.findViewById(R.id.bibtex_start1), paintColor);
+                    paintRankStar(convertView.findViewById(R.id.bibtex_star1), paintColor);
 
                 default:
                     break;

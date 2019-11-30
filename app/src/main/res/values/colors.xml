@@ -11,4 +11,10 @@
 
   <color name="star_default">#cccccc</color>
   <color name="star_given">#FFEB3B</color>
+
+
+  <color name="prio_default">@android:color/background_light</color>
+  <color name="prio_low">#81C784</color>
+  <color name="prio_medium">#FFB74D</color>
+  <color name="prio_high">#FF8A65</color>
 </resources>
