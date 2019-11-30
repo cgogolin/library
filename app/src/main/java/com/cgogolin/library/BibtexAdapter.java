@@ -10,7 +10,6 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.ViewGroup.MarginLayoutParams;
@@ -47,12 +46,12 @@ public class BibtexAdapter extends BaseAdapter {
     private HashMap<String, ArrayList<BibtexEntry>> groupMap;
     private String filter = null;
 
-    SortMode sortedAccordingTo = SortMode.None;
-    String filteredAccodingTo = "";
-    SortMode sortingAccordingTo = null;
-    String filteringAccodingTo = null;
-    String selectedGroup = "";
-    String selectingGroup = null;
+    private SortMode sortedAccordingTo = SortMode.None;
+    private String filteredAccodingTo = "";
+    private SortMode sortingAccordingTo = null;
+    private String filteringAccodingTo = null;
+    private String selectedGroup = "";
+    private String selectingGroup = null;
 
     // State of the row that needs to show separator
     private static final int SECTIONED_STATE = 1;
@@ -62,8 +61,8 @@ public class BibtexAdapter extends BaseAdapter {
     private int[] mRowStates;
     private Comparator<BibtexEntry> separatorComparator = null;
 
-    AsyncTask<Object, Void, Void> applyFilterTask;
-    AsyncTask<BibtexAdapter.SortMode, Void, Void> sortTask;
+    private AsyncTask<Object, Void, Void> applyFilterTask;
+    private AsyncTask<BibtexAdapter.SortMode, Void, Void> sortTask;
 
     public BibtexAdapter(InputStream inputStream) throws java.io.IOException {
         bibtexEntryList = BibtexParser.parse(inputStream);
@@ -87,9 +86,6 @@ public class BibtexAdapter extends BaseAdapter {
     }
 
     public void onPostBackgroundOperation() {
-    }
-
-    public void onBackgroundOperationCanceled() {
     }
 
     public void onEntryClick(View v) {
@@ -339,7 +335,7 @@ public class BibtexAdapter extends BaseAdapter {
         }
     }
 
-    private void paintRankStar(ImageView starView, int color){
+    private void paintRankStar(ImageView starView, int color) {
         starView.setColorFilter(color, android.graphics.PorterDuff.Mode.SRC_IN);
     }
 
@@ -358,6 +354,7 @@ public class BibtexAdapter extends BaseAdapter {
         }
 
         if (displayedBibtexEntryList == null || displayedBibtexEntryList.size() == 0) {
+            // FIXME: in this case, we do not want to display the icons!
             setTextViewAppearance(convertView.findViewById(R.id.separator), "");
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_info), context.getString(R.string.no_matches));
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_title), "");
@@ -416,15 +413,25 @@ public class BibtexAdapter extends BaseAdapter {
             setTextViewAppearance(convertView.findViewById(R.id.bibtex_journal), entry.getJournalFormated(context));
 
             ImageView readView = convertView.findViewById(R.id.bibtex_read);
-            if (entry.getReadStatus().equals("skimmed")){
+            if (entry.getReadStatus().equals("skimmed")) {
                 readView.setColorFilter(ContextCompat.getColor(context, R.color.read_skimmed), android.graphics.PorterDuff.Mode.SRC_IN);
-            }
-            if (entry.getReadStatus().equals("read")){
+            } else if (entry.getReadStatus().equals("read")) {
                 readView.setColorFilter(ContextCompat.getColor(context, R.color.read_read), android.graphics.PorterDuff.Mode.SRC_IN);
+            } else {
+                readView.setColorFilter(ContextCompat.getColor(context, R.color.read_default), android.graphics.PorterDuff.Mode.SRC_IN);
             }
 
+            // Need to reset to default, otherwise while scrolling you will have weird effects...
+            // Other entries will get the star of previous entries or something like that.
+            paintRankStar(convertView.findViewById(R.id.bibtex_start1), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_start2), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_start3), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_start4), ContextCompat.getColor(context, R.color.star_default));
+            paintRankStar(convertView.findViewById(R.id.bibtex_start5), ContextCompat.getColor(context, R.color.star_default));
+
+
             int paintColor = ContextCompat.getColor(context, R.color.star_given);
-            switch(entry.getRanking()){
+            switch (entry.getRanking()) {
                 case 5:
                     paintRankStar(convertView.findViewById(R.id.bibtex_start5), paintColor);
                 case 4:
@@ -445,18 +452,15 @@ public class BibtexAdapter extends BaseAdapter {
             else
                 makeExtraInfoInvisible(position, convertView, false);
 
-            convertView.setOnClickListener(new OnClickListener() {
-                                               @Override
-                                               public void onClick(View v) {
-                                                   onEntryClick(v);
-                                                   LinearLayout extraInfo = v.findViewById(R.id.LinearLayout02);
-                                                   if (extraInfo.getVisibility() != View.VISIBLE) {
-                                                       makeExtraInfoVisible(position, v, context, true);
-                                                   } else {
-                                                       makeExtraInfoInvisible(position, v, true);
-                                                   }
-                                               }
-                                           }
+            convertView.setOnClickListener((View v) -> {
+                        onEntryClick(v);
+                        LinearLayout extraInfo = v.findViewById(R.id.LinearLayout02);
+                        if (extraInfo.getVisibility() != View.VISIBLE) {
+                            makeExtraInfoVisible(position, v, context, true);
+                        } else {
+                            makeExtraInfoInvisible(position, v, true);
+                        }
+                    }
             );
         }
         return convertView;
@@ -517,26 +521,22 @@ public class BibtexAdapter extends BaseAdapter {
         List<String> associatedFilesList = entry.getFiles();
         if (associatedFilesList != null) {
             for (String file : associatedFilesList) {
-                final String path = getModifiedPath(file);//Path replacement can be done by overriding getModifiedPath()
+                final String path = getModifiedPath(file); //Path replacement can be done by overriding getModifiedPath()
 
                 if (path == null || path.equals("")) continue;
 
                 final Button button = new Button(context);
                 button.setLayoutParams(buttonLayoutParams);
                 button.setText(context.getString(R.string.file) + ": " + path);
-                button.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                button.setOnClickListener((View vv) -> {
                         Uri uri = getUriForActionViewIntent(path);
                         if (uri == null) {
                             return;
                         }
-
                         checkCanWriteToUri(context, uri);
-
                         openExternally(context, uri);
                     }
-                });
+                );
                 extraInfo.addView(button);
             }
         }
@@ -550,9 +550,7 @@ public class BibtexAdapter extends BaseAdapter {
                 final Button button = new Button(context);
                 button.setLayoutParams(buttonLayoutParams);
                 button.setText(context.getString(R.string.url) + ": " + url);
-                button.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                button.setOnClickListener((View vv) -> {
 
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(Uri.parse(url));
@@ -562,7 +560,7 @@ public class BibtexAdapter extends BaseAdapter {
                             Toast.makeText(context, context.getString(R.string.error_opening_webbrowser), Toast.LENGTH_SHORT).show();
                         }
                     }
-                });
+                );
                 extraInfo.addView(button);
             }
         }
@@ -577,9 +575,7 @@ public class BibtexAdapter extends BaseAdapter {
                 final Button button = new Button(context);
                 button.setLayoutParams(buttonLayoutParams);
                 button.setText(context.getString(R.string.doi) + ": " + doi);
-                button.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
+                button.setOnClickListener((View vv) -> {
 
                         Intent intent = new Intent(Intent.ACTION_VIEW);
                         intent.setData(Uri.parse(doi));
@@ -590,7 +586,7 @@ public class BibtexAdapter extends BaseAdapter {
                             Toast.makeText(context, context.getString(R.string.error_opening_webbrowser), Toast.LENGTH_SHORT).show();
                         }
                     }
-                });
+                );
                 extraInfo.addView(button);
             }
         }
@@ -600,9 +596,7 @@ public class BibtexAdapter extends BaseAdapter {
         final Button button = new Button(context);
         button.setLayoutParams(buttonLayoutParams);
         button.setText(context.getString(R.string.share));
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        button.setOnClickListener((View vv) -> {
                 Intent shareIntent = new Intent();
                 shareIntent.setAction(Intent.ACTION_SEND);
                 shareIntent.setType("plain/text");
@@ -614,7 +608,7 @@ public class BibtexAdapter extends BaseAdapter {
                     Toast.makeText(context, context.getString(R.string.error_starting_share_intent), Toast.LENGTH_SHORT).show();
                 }
             }
-        });
+        );
         extraInfo.addView(button);
         extraInfo.setVisibility(View.VISIBLE);
 

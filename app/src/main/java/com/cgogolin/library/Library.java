@@ -186,7 +186,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
 
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) //Handel clicks in the options menu 
+    public boolean onOptionsItemSelected(MenuItem item) // handles clicks in the options menu
     {
         switch (item.getItemId()) {
             case R.id.menu_set_library_path:
