@@ -124,7 +124,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
     private AlertDialog setTargetAndReplacementStringsDialog = null;
     private AlertDialog setLibraryFolderRootUriDialog = null;
     private AlertDialog analysingLibraryFolderRootDialog = null;
-    private String pathOfFileTrigeredSetLibraryFolderRootDialog = null;
+    private String pathOfFileTriggeredSetLibraryFolderRootDialog = null;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) //Inflates the options menu
@@ -454,7 +454,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                 .setTitle(getString(R.string.dialog_set_library_root_title))
                 .setMessage(message)
                 .setPositiveButton(getString(R.string.dialog_set_library_root_select), (DialogInterface dialog, int whichButton) -> {
-                    pathOfFileTrigeredSetLibraryFolderRootDialog = path;
+                    pathOfFileTriggeredSetLibraryFolderRootDialog = path;
                     Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
                     intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
                     startActivityForResult(intent, SET_LIBRARY_FOLDER_ROOT_REQUEST);
@@ -465,8 +465,8 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
     }
 
     private void analyseLibraryFolderRoot(final Uri treeUri) {
-        if (pathOfFileTrigeredSetLibraryFolderRootDialog == null)
-            throw new RuntimeException("pathOfFileTrigeredSetLibraryFolderRootDialog was null, this should not have happened");
+        if (pathOfFileTriggeredSetLibraryFolderRootDialog == null)
+            throw new RuntimeException("pathOfFileTriggeredSetLibraryFolderRootDialog was null, this should not have happened");
 
         if (analysingLibraryFolderRootDialog != null && analysingLibraryFolderRootDialog.isShowing())
             return;
@@ -512,7 +512,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
             @Override
             protected void onPostExecute(Boolean succees) {
                 if (succees) {
-                    final String path = pathOfFileTrigeredSetLibraryFolderRootDialog;
+                    final String path = pathOfFileTriggeredSetLibraryFolderRootDialog;
                     setLibraryFolderRootUri(treeUri);
                     SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
                     SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
@@ -522,7 +522,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                     globalSettingsEditor.apply();
                     if (analysingLibraryFolderRootDialog != null) {
                         //analysingLibraryFolderRootDialog.cancel();
-                        analysingLibraryFolderRootDialog.setMessage(String.format(getString(R.string.dialog_analyse_library_root_message_success), pathOfFileTrigeredSetLibraryFolderRootDialog, libraryFolderRootUri.toString(), getUriInLibraryFolder(pathOfFileTrigeredSetLibraryFolderRootDialog).toString()));
+                        analysingLibraryFolderRootDialog.setMessage(String.format(getString(R.string.dialog_analyse_library_root_message_success), pathOfFileTriggeredSetLibraryFolderRootDialog, libraryFolderRootUri.toString(), getUriInLibraryFolder(pathOfFileTriggeredSetLibraryFolderRootDialog).toString()));
                         analysingLibraryFolderRootDialog.setTitle(getString(R.string.dialog_analyse_library_root_title_success));
                         analysingLibraryFolderRootDialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE).setText(R.string.open);
                         analysingLibraryFolderRootDialog.setButton(android.content.DialogInterface.BUTTON_NEGATIVE, getString(R.string.open), new DialogInterface.OnClickListener() {
@@ -538,12 +538,12 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                     setLibraryFolderRootUri(null);
                     if (analysingLibraryFolderRootDialog != null) {
                         //analysingLibraryFolderRootDialog.cancel();
-                        analysingLibraryFolderRootDialog.setMessage(String.format(getString(R.string.dialog_analyse_library_root_message_failed), pathOfFileTrigeredSetLibraryFolderRootDialog, treeUri.toString()));
+                        analysingLibraryFolderRootDialog.setMessage(String.format(getString(R.string.dialog_analyse_library_root_message_failed), pathOfFileTriggeredSetLibraryFolderRootDialog, treeUri.toString()));
                         analysingLibraryFolderRootDialog.setTitle(getString(R.string.dialog_analyse_library_root_title_failed));
                         analysingLibraryFolderRootDialog = null;
                     }
                 }
-                pathOfFileTrigeredSetLibraryFolderRootDialog = null;
+                pathOfFileTriggeredSetLibraryFolderRootDialog = null;
             }
             // @Override
             // protected void onPostExecute(Boolean succees) {
@@ -567,7 +567,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                     }
                 });
         analysingLibraryFolderRootDialog = alertDialogBuilder.show();
-        analyseLibraryFolderRootTask.execute(pathOfFileTrigeredSetLibraryFolderRootDialog);
+        analyseLibraryFolderRootTask.execute(pathOfFileTriggeredSetLibraryFolderRootDialog);
     }
 
 
