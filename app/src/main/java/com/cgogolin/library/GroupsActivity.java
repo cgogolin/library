@@ -25,22 +25,20 @@ public class GroupsActivity extends Activity {
         setContentView(R.layout.groupslist);
         groupList = (ArrayList<String>) getIntent().getSerializableExtra("group list");
         groupList.add(0, "All");
-        groupsArrayAdapter = new ArrayAdapter<String> (this, R.layout.grouplistentry, R.id.group_name, groupList);
-        lv = (ListView) findViewById(R.id.bibtex_grouplist_view);
+        groupsArrayAdapter = new ArrayAdapter<String>(this, R.layout.grouplistentry, R.id.group_name, groupList);
+        lv = findViewById(R.id.bibtex_grouplist_view);
         lv.setAdapter(groupsArrayAdapter);
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener(){
-            @Override
-            public void onItemClick(AdapterView<?>adapter, View v, int position, long id){
-                String selectedGroup = "";
-                if(position != 0) {
-                    selectedGroup = (String) adapter.getItemAtPosition(position);
-                }
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("group", selectedGroup);
-                setResult(Activity.RESULT_OK, resultIntent);
-                finish();
-            }
-        });
+        lv.setOnItemClickListener(
+                (AdapterView<?> adapter, View v, int position, long id) -> {
+                    String selectedGroup = "";
+                    if (position != 0) {
+                        selectedGroup = (String) adapter.getItemAtPosition(position);
+                    }
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("group", selectedGroup);
+                    setResult(Activity.RESULT_OK, resultIntent);
+                    finish();
+                });
 
     }
 

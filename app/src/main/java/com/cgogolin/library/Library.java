@@ -17,7 +17,6 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -140,12 +139,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setIconified(false);
 
-        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                searchView.setIconified(false);//prevent collapsing
-                return true;
-            }
+        searchView.setOnCloseListener(() -> {
+            searchView.setIconified(false);//prevent collapsing
+            return true;
         });
         searchView.setOnQueryTextListener(this); //Implemented in: public boolean onQueryTextChange(String query) and public boolean onQueryTextSubmit(String query)
 //        searchView.setMaxWidth(Integer.MAX_VALUE);//Makes the overflow menu button disappear on API 23
@@ -278,10 +274,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
 
         setContentView(R.layout.bibtexlist);
         context = this;
-        loadGlobalSettings(); //Load seetings (uses default if not set)
-//        bibtexAdapter = (LibraryBibtexAdapter) getLastNonConfigurationInstance(); //retreving doesn't work as the on...BackgroundOpertaion() methods lose their references to the Views
+        loadGlobalSettings(); //Load settings (uses default if not set)
 
-        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        progressBar = findViewById(R.id.progress_bar);
 
         if (savedInstanceState != null) {
             savedQueryText = savedInstanceState.getString("SearchQueryText", savedQueryText);
@@ -319,13 +314,6 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
     }
 
 
-    // @Override
-    // public Object onRetainNonConfigurationInstance() //retainig doesn't work as the on...BackgroundOpertaion() methods lose their references to the Views
-    // {
-    //     return bibtexAdapter;
-    // }
-
-
     @Override
     protected void onSaveInstanceState(Bundle outState) { //Called when the app is destroyed by the system and in various other cases
         super.onSaveInstanceState(outState);
@@ -357,17 +345,14 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
         /*On newer versions of Android offer to use the file system picker to chose the bibtex library file*/
         final Button button = new Button(context);
         button.setText(getString(R.string.pick_bibtex_library));
-        button.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setLibraryFolderRootUri(null);
+        button.setOnClickListener((View v) -> {
+            setLibraryFolderRootUri(null);
 
-                Intent openDocumentIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                openDocumentIntent.addCategory(Intent.CATEGORY_OPENABLE);
-                openDocumentIntent.setType("*/*");
-                openDocumentIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                startActivityForResult(openDocumentIntent, LIBRARY_FILE_PICK_REQUEST);
-            }
+            Intent openDocumentIntent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            openDocumentIntent.addCategory(Intent.CATEGORY_OPENABLE);
+            openDocumentIntent.setType("*/*");
+            openDocumentIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            startActivityForResult(openDocumentIntent, LIBRARY_FILE_PICK_REQUEST);
         });
         editTextLayout.addView(button);
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
@@ -375,36 +360,27 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                 .setTitle(getString(R.string.menu_set_library_path))
                 .setMessage(message)
                 .setView(editTextLayout)
-                .setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        setLibraryFolderRootUri(null);
-                        setLibraryPathDialog = null;
-                        setLibraryPath(input.getText().toString().trim());
-                        bibtexAdapter = null;
-                        prepareBibtexAdapter();
-                    }
+                .setPositiveButton(getString(R.string.save), (DialogInterface dialog, int whichButton) -> {
+                    setLibraryFolderRootUri(null);
+                    setLibraryPathDialog = null;
+                    setLibraryPath(input.getText().toString().trim());
+                    bibtexAdapter = null;
+                    prepareBibtexAdapter();
                 })
-                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        setLibraryPathDialog = null;
-                        if (bibtexAdapter == null && prepareBibtexAdapterTask == null)
-                            finish();
-                    }
+                .setNegativeButton(getString(R.string.cancel), (DialogInterface dialog, int whichButton) -> {
+                    setLibraryPathDialog = null;
+                    if (bibtexAdapter == null && prepareBibtexAdapterTask == null)
+                        finish();
                 })
-                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        if (bibtexAdapter == null && prepareBibtexAdapterTask == null)
-                            finish();
-                    }
+                .setOnCancelListener((DialogInterface dialog) -> {
+                    if (bibtexAdapter == null && prepareBibtexAdapterTask == null)
+                        finish();
                 });
         setLibraryPathDialog = alertDialogBuilder.show();
     }
 
 
-    public void showSetTargetAndReplacementStringsDialog() //Open a dialoge to set the target and repacement strings from user input
+    public void showSetTargetAndReplacementStringsDialog() //Open a dialoge to set the target and replacement strings from user input
     {
         if (setTargetAndReplacementStringsDialog != null && setTargetAndReplacementStringsDialog.isShowing())
             return;
@@ -441,30 +417,24 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                 .setTitle(getString(R.string.menu_set_path_conversion))
                 .setMessage(getString(R.string.menu_set_path_conversion_help))
                 .setView(editTextLayout)
-                .setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        String newPathTargetString = input1.getText().toString().trim();
-                        String newPathReplacementString = input2.getText().toString().trim();
-                        String newpathPrefixString = input3.getText().toString().trim();
-                        SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
-                        SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
-                        globalSettingsEditor.putString("pathTargetString", newPathTargetString);
-                        globalSettingsEditor.putString("pathReplacementString", newPathReplacementString);
-                        globalSettingsEditor.putString("pathPrefixString", newpathPrefixString);
-                        globalSettingsEditor.apply();
-                        pathTargetString = newPathTargetString;
-                        pathReplacementString = newPathReplacementString;
-                        pathPrefixString = newpathPrefixString;
+                .setPositiveButton(getString(R.string.save), (DialogInterface dialog, int whichButton) -> {
+                    String newPathTargetString = input1.getText().toString().trim();
+                    String newPathReplacementString = input2.getText().toString().trim();
+                    String newpathPrefixString = input3.getText().toString().trim();
+                    SharedPreferences globalSettings = getSharedPreferences(GLOBAL_SETTINGS, MODE_PRIVATE);
+                    SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
+                    globalSettingsEditor.putString("pathTargetString", newPathTargetString);
+                    globalSettingsEditor.putString("pathReplacementString", newPathReplacementString);
+                    globalSettingsEditor.putString("pathPrefixString", newpathPrefixString);
+                    globalSettingsEditor.apply();
+                    pathTargetString = newPathTargetString;
+                    pathReplacementString = newPathReplacementString;
+                    pathPrefixString = newpathPrefixString;
 
-                        setTargetAndReplacementStringsDialog = null;
-                    }
+                    setTargetAndReplacementStringsDialog = null;
                 })
-                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        setTargetAndReplacementStringsDialog = null;
-                    }
+                .setNegativeButton(getString(R.string.cancel), (DialogInterface dialog, int whichButton) -> {
+                    setTargetAndReplacementStringsDialog = null;
                 });
 
         setTargetAndReplacementStringsDialog = alertDialogBuilder.show();
@@ -483,27 +453,16 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.dialog_set_library_root_title))
                 .setMessage(message)
-                .setPositiveButton(getString(R.string.dialog_set_library_root_select), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        pathOfFileTrigeredSetLibraryFolderRootDialog = path;
-                        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                        intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                        startActivityForResult(intent, SET_LIBRARY_FOLDER_ROOT_REQUEST);
-                    }
+                .setPositiveButton(getString(R.string.dialog_set_library_root_select), (DialogInterface dialog, int whichButton) -> {
+                    pathOfFileTrigeredSetLibraryFolderRootDialog = path;
+                    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                    startActivityForResult(intent, SET_LIBRARY_FOLDER_ROOT_REQUEST);
                 })
-                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int whichButto) {
-                    }
+                .setNegativeButton(getString(R.string.cancel), (DialogInterface dialog, int whichButton) -> {
                 });
         setLibraryFolderRootUriDialog = alertDialogBuilder.show();
     }
-
-    // private void rememberPathOfFileTrigeredSetLibraryFolderRootDialog(String path)
-    // {
-    //     pathOfFileTrigeredSetLibraryFolderRootDialog = path;
-    // }
 
     private void analyseLibraryFolderRoot(final Uri treeUri) {
         if (pathOfFileTrigeredSetLibraryFolderRootDialog == null)
@@ -595,22 +554,16 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.dialog_analyse_library_root_title))
                 .setMessage(getString(R.string.dialog_analyse_library_root_message))
-                .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        if (analyseLibraryFolderRootTask != null) {
-                            analyseLibraryFolderRootTask.cancel(false);
-                            analyseLibraryFolderRootTask = null;
-                        }
+                .setNegativeButton(getString(R.string.cancel), (DialogInterface dialog, int whichButton) -> {
+                    if (analyseLibraryFolderRootTask != null) {
+                        analyseLibraryFolderRootTask.cancel(false);
+                        analyseLibraryFolderRootTask = null;
                     }
                 })
-                .setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        if (analyseLibraryFolderRootTask != null) {
-                            analyseLibraryFolderRootTask.cancel(false);
-                            analyseLibraryFolderRootTask = null;
-                        }
+                .setOnCancelListener((DialogInterface dialog) -> {
+                    if (analyseLibraryFolderRootTask != null) {
+                        analyseLibraryFolderRootTask.cancel(false);
+                        analyseLibraryFolderRootTask = null;
                     }
                 });
         analysingLibraryFolderRootDialog = alertDialogBuilder.show();
@@ -649,7 +602,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
 
 
     private void prepareBibtexListView() {
-        bibtexListView = (ListView) findViewById(R.id.bibtex_list_view);
+        bibtexListView = findViewById(R.id.bibtex_list_view);
     }
 
 
@@ -662,13 +615,11 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                 Uri libraryUri = Uri.parse(libraryPathString);
                 if (libraryUri != null) {
                     File libraryFile = new File(Uri.decode(libraryUri.getEncodedPath()));
-                    if (libraryFile != null) {
-                        SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
-                        globalSettingsEditor.putLong("libraryFileLastModifyDate", libraryFile.lastModified());
-                        globalSettingsEditor.apply();
-                        if (libraryFile.lastModified() != lastModifyDate)
-                            bibtexAdapter = null;
-                    }
+                    SharedPreferences.Editor globalSettingsEditor = globalSettings.edit();
+                    globalSettingsEditor.putLong("libraryFileLastModifyDate", libraryFile.lastModified());
+                    globalSettingsEditor.apply();
+                    if (libraryFile.lastModified() != lastModifyDate)
+                        bibtexAdapter = null;
                 }
             }
         }
@@ -806,7 +757,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                 if (resultCode == Activity.RESULT_OK) {
                     group = intent.getStringExtra("group");
                     filterAndSortInBackground(filter, sortMode, group);
-                    TextView group_titlebar = (TextView) findViewById(R.id.group_titlebar);
+                    TextView group_titlebar = findViewById(R.id.group_titlebar);
 
                     if (bibtexAdapter.getGroups().contains(group)) {
                         group_titlebar.setText(group);
@@ -849,7 +800,7 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
              * is restarted from scratch.
              * */
             //onResume();
-            Boolean anyResultPositive = false;
+            boolean anyResultPositive = false;
             for (int result : grantResults)
                 if (result == android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     anyResultPositive = true;
@@ -861,16 +812,9 @@ public class Library extends Activity implements SearchView.OnQueryTextListener 
                 AlertDialog alert = alertDialogBuilder.create();
                 alert.setTitle(R.string.dialog_newpermissions_title);
                 alert.setMessage(getResources().getString(R.string.dialog_newpermissions_message));
-                alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dialog_newpermissions_ok),
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        });
-                alert.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    public void onDismiss(DialogInterface dialog) {
-                        android.os.Process.killProcess(android.os.Process.myPid());
-                    }
+                alert.setButton(AlertDialog.BUTTON_POSITIVE, getString(R.string.dialog_newpermissions_ok), (DialogInterface dialog, int which) -> {
                 });
+                alert.setOnDismissListener((DialogInterface dialog) -> android.os.Process.killProcess(android.os.Process.myPid()));
                 alert.show();
             }
         }
