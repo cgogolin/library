@@ -44,7 +44,6 @@ public class BibtexAdapter extends BaseAdapter {
     private ArrayList<BibtexEntry> displayedBibtexEntryList;
     private ArrayList<BibtexEntry> bibtexGroupEntryList;
     private HashMap<String, ArrayList<BibtexEntry>> groupMap;
-    private String filter = null;
 
     private SortMode sortedAccordingTo = SortMode.None;
     private String filteredAccodingTo = "";
@@ -228,73 +227,46 @@ public class BibtexAdapter extends BaseAdapter {
 
         switch (sortMode) {
             case None:
-                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return entry1.getNumberInFile().compareTo(entry2.getNumberInFile());
-                    }
-                });
+                Collections.sort(displayedBibtexEntryList,
+                        (BibtexEntry entry1, BibtexEntry entry2) -> entry1.getNumberInFile().compareTo(entry2.getNumberInFile())
+                );
                 separatorComparator = null;
                 break;
             case Date:
-                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return (entry2.getDateFormated() + entry2.getNumberInFile()).compareTo(entry1.getDateFormated() + entry1.getNumberInFile());
-                    }
-                });
-                separatorComparator = new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return (entry2.getYear().compareTo(entry1.getYear()));
-                    }
-                };
+                Collections.sort(displayedBibtexEntryList,
+                        (BibtexEntry entry1, BibtexEntry entry2) -> (entry2.getDateFormated() + entry2.getNumberInFile()).compareTo(entry1.getDateFormated() + entry1.getNumberInFile())
+                );
+                separatorComparator = (BibtexEntry entry1, BibtexEntry entry2) -> (entry2.getYear().compareTo(entry1.getYear()));
                 break;
             case Author:
-                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return (entry1.getAuthorSortKey() + entry1.getNumberInFile()).compareTo(entry2.getAuthorSortKey() + entry2.getNumberInFile());
-                    }
-                });
-                separatorComparator = new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        if (entry1.getAuthorSortKey().length() == 0 && entry1.getAuthorSortKey().length() == 0)
-                            return 0;
-                        else if (entry1.getAuthorSortKey().length() == 0)
-                            return -1;
-                        else if (entry2.getAuthorSortKey().length() == 0)
-                            return 1;
-                        else
-                            return entry1.getAuthorSortKey().substring(0, 1).compareTo(entry2.getAuthorSortKey().substring(0, 1));
-                    }
+                Collections.sort(displayedBibtexEntryList,
+                        (BibtexEntry entry1, BibtexEntry entry2) -> (entry1.getAuthorSortKey() + entry1.getNumberInFile()).compareTo(entry2.getAuthorSortKey() + entry2.getNumberInFile())
+                );
+                separatorComparator = (BibtexEntry entry1, BibtexEntry entry2) -> {
+                    if (entry1.getAuthorSortKey().length() == 0 && entry1.getAuthorSortKey().length() == 0)
+                        return 0;
+                    else if (entry1.getAuthorSortKey().length() == 0)
+                        return -1;
+                    else if (entry2.getAuthorSortKey().length() == 0)
+                        return 1;
+                    else
+                        return entry1.getAuthorSortKey().substring(0, 1).compareTo(entry2.getAuthorSortKey().substring(0, 1));
                 };
                 break;
             case Journal:
-                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return (entry1.getJournal() + entry1.getNumberInFile()).compareTo(entry2.getJournal() + entry2.getNumberInFile());
-                    }
-                });
-                separatorComparator = new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return entry1.getJournal().toLowerCase().compareTo(entry2.getJournal().toLowerCase());
-                    }
-                };
+                Collections.sort(displayedBibtexEntryList,
+                        (BibtexEntry entry1, BibtexEntry entry2) ->
+                        (entry1.getJournal() + entry1.getNumberInFile()).compareTo(entry2.getJournal() + entry2.getNumberInFile())
+                );
+                separatorComparator = (BibtexEntry entry1, BibtexEntry entry2) ->
+                        entry1.getJournal().toLowerCase().compareTo(entry2.getJournal().toLowerCase());
                 break;
             case Title:
-                Collections.sort(displayedBibtexEntryList, new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
-                        return (entry1.getTitle() + entry1.getNumberInFile()).compareTo(entry2.getTitle() + entry2.getNumberInFile());
-                    }
-                });
-                separatorComparator = new Comparator<BibtexEntry>() {
-                    @Override
-                    public int compare(BibtexEntry entry1, BibtexEntry entry2) {
+                Collections.sort(displayedBibtexEntryList,
+                        (BibtexEntry entry1, BibtexEntry entry2) ->
+                        (entry1.getTitle() + entry1.getNumberInFile()).compareTo(entry2.getTitle() + entry2.getNumberInFile())
+                );
+                separatorComparator = (BibtexEntry entry1, BibtexEntry entry2) -> {
                         if (entry1.getTitle().length() == 0 && entry1.getTitle().length() == 0)
                             return 0;
                         else if (entry1.getTitle().length() == 0)
@@ -303,8 +275,7 @@ public class BibtexAdapter extends BaseAdapter {
                             return 1;
                         else
                             return entry1.getTitle().substring(0, 1).compareTo(entry2.getTitle().substring(0, 1));
-                    }
-                };
+                    };
 
         }
         sortingAccordingTo = null;
@@ -529,13 +500,13 @@ public class BibtexAdapter extends BaseAdapter {
                 button.setLayoutParams(buttonLayoutParams);
                 button.setText(context.getString(R.string.file) + ": " + path);
                 button.setOnClickListener((View vv) -> {
-                        Uri uri = getUriForActionViewIntent(path);
-                        if (uri == null) {
-                            return;
+                            Uri uri = getUriForActionViewIntent(path);
+                            if (uri == null) {
+                                return;
+                            }
+                            checkCanWriteToUri(context, uri);
+                            openExternally(context, uri);
                         }
-                        checkCanWriteToUri(context, uri);
-                        openExternally(context, uri);
-                    }
                 );
                 extraInfo.addView(button);
             }
@@ -552,14 +523,14 @@ public class BibtexAdapter extends BaseAdapter {
                 button.setText(context.getString(R.string.url) + ": " + url);
                 button.setOnClickListener((View vv) -> {
 
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(url));
-                        try {
-                            context.startActivity(intent);
-                        } catch (ActivityNotFoundException e) {
-                            Toast.makeText(context, context.getString(R.string.error_opening_webbrowser), Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            intent.setData(Uri.parse(url));
+                            try {
+                                context.startActivity(intent);
+                            } catch (ActivityNotFoundException e) {
+                                Toast.makeText(context, context.getString(R.string.error_opening_webbrowser), Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
                 );
                 extraInfo.addView(button);
             }
@@ -577,15 +548,15 @@ public class BibtexAdapter extends BaseAdapter {
                 button.setText(context.getString(R.string.doi) + ": " + doi);
                 button.setOnClickListener((View vv) -> {
 
-                        Intent intent = new Intent(Intent.ACTION_VIEW);
-                        intent.setData(Uri.parse(doi));
+                            Intent intent = new Intent(Intent.ACTION_VIEW);
+                            intent.setData(Uri.parse(doi));
 //                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        try {
-                            context.startActivity(intent);
-                        } catch (ActivityNotFoundException e) {
-                            Toast.makeText(context, context.getString(R.string.error_opening_webbrowser), Toast.LENGTH_SHORT).show();
+                            try {
+                                context.startActivity(intent);
+                            } catch (ActivityNotFoundException e) {
+                                Toast.makeText(context, context.getString(R.string.error_opening_webbrowser), Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
                 );
                 extraInfo.addView(button);
             }
@@ -597,17 +568,17 @@ public class BibtexAdapter extends BaseAdapter {
         button.setLayoutParams(buttonLayoutParams);
         button.setText(context.getString(R.string.share));
         button.setOnClickListener((View vv) -> {
-                Intent shareIntent = new Intent();
-                shareIntent.setAction(Intent.ACTION_SEND);
-                shareIntent.setType("plain/text");
-                shareIntent.setType("*/*");
-                shareIntent.putExtra(Intent.EXTRA_TEXT, entryString);
-                try {
-                    context.startActivity(shareIntent);
-                } catch (ActivityNotFoundException e) {
-                    Toast.makeText(context, context.getString(R.string.error_starting_share_intent), Toast.LENGTH_SHORT).show();
+                    Intent shareIntent = new Intent();
+                    shareIntent.setAction(Intent.ACTION_SEND);
+                    shareIntent.setType("plain/text");
+                    shareIntent.setType("*/*");
+                    shareIntent.putExtra(Intent.EXTRA_TEXT, entryString);
+                    try {
+                        context.startActivity(shareIntent);
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(context, context.getString(R.string.error_starting_share_intent), Toast.LENGTH_SHORT).show();
+                    }
                 }
-            }
         );
         extraInfo.addView(button);
         extraInfo.setVisibility(View.VISIBLE);
